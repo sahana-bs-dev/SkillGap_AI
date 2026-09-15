@@ -1,10 +1,29 @@
 # Backend
-backend/.env
-backend/**/__pycache__/
-backend/**/*.pyc
+=======
 backend/venv/
-backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.env
 
-# Frontend (safety net, frontend/.gitignore already covers this)
+# Frontend
 frontend/node_modules/
 frontend/dist/
+frontend/.vite/
+
+# Environment files (extra safety net, in case .env exists elsewhere)
+.env
+*.env
+!.env.example
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Editor/IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+>>>>>>> upstream/main
