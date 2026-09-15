@@ -1,0 +1,10 @@
+# Backend
+backend/.env
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/venv/
+backend/.venv/
+
+# Frontend (safety net, frontend/.gitignore already covers this)
+frontend/node_modules/
+frontend/dist/

@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --paper:      #F7F8FB;
+  --panel:      #EEF0F6;
+  --panel-alt:  #E4E7F1;
+  --ink:        #14161F;
+  --ink-soft:   #565A68;
+  --line:       #D9DCE6;
+  --line-soft:  #E6E8F0;
+
+  --gold:       #5B4FE8;
+  --gold-deep:  #4338CA;
+  --gold-wash:  #E9E7FD;
+
+  --match:      #1F8A5B;
+  --gap:        #D1453A;
+
+  --radius: 4px;
+  --serif: 'Newsreader', Georgia, serif;
+  --sans: 'IBM Plex Sans', -apple-system, Segoe UI, sans-serif;
+  --mono: 'IBM Plex Mono', 'Courier New', monospace;
+}
+
+*{ box-sizing: border-box; }
+body{
+  margin:0; background: var(--paper); color: var(--ink);
+  font-family: var(--sans); line-height: 1.55;
+}
+h1,h2,h3{ font-family: var(--serif); font-weight:500; margin:0; }
+button{
+  font-family: var(--sans); font-weight:600; cursor:pointer;
+  border-radius: var(--radius); border:1px solid var(--ink);
+  background: var(--ink); color: var(--paper); padding:.8em 1.2em;
+}
+button:hover{ background:#2a2c38; }
+button:disabled{ opacity:.55; cursor:not-allowed; }
+button.secondary{ background:transparent; color:var(--ink); }
+button.secondary:hover{ background: var(--panel-alt); }
