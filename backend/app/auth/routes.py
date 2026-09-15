@@ -12,7 +12,7 @@ from app.auth.jwt_handler import (
     hash_password,
     verify_password,
 )
-from app.auth.models import TokenResponse, UserLogin, UserOut, UserSignup
+from app.auth.models import TokenResponse, UserLogin, UserOut, UserSignup, ResetPasswordRequest
 from app.db.mongo_client import users_collection
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -66,3 +66,19 @@ def get_me(current_user: dict = Depends(get_current_user)):
         name=current_user["name"],
         email=current_user["email"],
     )
+    
+@router.post("/reset-password")
+def reset_password(payload: ResetPasswordRequest):
+    user = users_collection.find_one({"email": payload.email})
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No account found with this email.",
+        )
+
+    users_collection.update_one(
+        {"email": payload.email},
+        {"$set": {"password": hash_password(payload.new_password)}},
+    )
+
+    return {"message": "Password updated successfully."}
