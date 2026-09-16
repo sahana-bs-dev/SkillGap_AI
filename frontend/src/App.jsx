@@ -4,6 +4,7 @@ import Signup from "./pages/Auth/Signup";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import UploadPage from "./pages/Upload/Upload";
 
 export default function App() {
   return (
@@ -19,7 +20,10 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="/upload" element={<UploadPage />} />
+       <Route path="/" element={<Navigate to="/upload" replace />} />
+        <Route path="*" element={<Navigate to="/upload" replace />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }

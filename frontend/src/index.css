@@ -1,0 +1,152 @@
+/* =========================================================
+   SkillGap AI — global tokens + shared primitives
+   Pulled from the reference blueprint so every page (Upload,
+   ATSReport, MatchReport, ...) stays visually consistent
+   without each page re-declaring the same tokens.
+   Import this once in main.jsx: import "./index.css"
+   ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --paper:      #F7F8FB;
+  --panel:      #EEF0F6;
+  --panel-alt:  #E4E7F1;
+  --ink:        #14161F;
+  --ink-soft:   #565A68;
+  --line:       #D9DCE6;
+  --line-soft:  #E6E8F0;
+
+  --gold:       #5B4FE8;
+  --gold-deep:  #4338CA;
+  --gold-wash:  #E9E7FD;
+
+  --match:      #1F8A5B;
+  --match-wash: #E0F3EA;
+
+  --gap:        #D1453A;
+  --gap-wash:   #FBE7E5;
+
+  --radius: 4px;
+  --serif: 'Newsreader', Georgia, serif;
+  --sans: 'IBM Plex Sans', -apple-system, Segoe UI, sans-serif;
+  --mono: 'IBM Plex Mono', 'Courier New', monospace;
+
+  --max: 1080px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--serif);
+  font-weight: 500;
+  line-height: 1.15;
+  margin: 0 0 .5em;
+  color: var(--ink);
+}
+h1 { font-size: 2.6rem; }
+h2 { font-size: 1.7rem; }
+h3 { font-size: 1.2rem; }
+p  { margin: 0 0 1em; max-width: 62ch; color: var(--ink-soft); }
+
+.mono { font-family: var(--mono); }
+
+/* ---------- buttons ---------- */
+button, .btn {
+  font-family: var(--sans);
+  font-size: .95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: var(--radius);
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  padding: .75em 1.4em;
+  display: inline-flex;
+  align-items: center;
+  gap: .5em;
+  transition: transform .12s ease, background .12s ease;
+}
+button:hover, .btn:hover { background: #3a3a30; }
+button:active, .btn:active { transform: translateY(1px); }
+button:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+button:focus-visible, .btn:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--gold-deep);
+  outline-offset: 2px;
+}
+
+/* ---------- page header ---------- */
+.page-head {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  gap: 2rem; margin-bottom: 2rem; padding-bottom: 1.4rem;
+  border-bottom: 1px solid var(--line);
+}
+.page-head .kicker {
+  font-family: var(--mono); font-size: .72rem; color: var(--gold-deep);
+  margin-bottom: .5rem; display: block;
+}
+.page-head h1 { margin-bottom: .2rem; }
+
+/* ---------- panels ---------- */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.6rem 1.7rem;
+}
+.panel + .panel { margin-top: 1.2rem; }
+.panel h3 { margin-bottom: .7rem; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+@media (max-width: 720px) { .grid-2 { grid-template-columns: 1fr; } }
+
+/* ---------- forms ---------- */
+.field { margin-bottom: 1.2rem; }
+.field label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: .4em; }
+textarea {
+  width: 100%; font-family: var(--sans); font-size: .94rem;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  padding: .8em; background: var(--paper); color: var(--ink);
+  min-height: 160px; resize: vertical;
+}
+
+.dropzone {
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 2.2rem 1.5rem;
+  text-align: center;
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-size: .9rem;
+  cursor: pointer;
+  transition: border-color .12s ease, background .12s ease;
+}
+.dropzone.filled { border-style: solid; border-color: var(--match); color: var(--match); background: var(--match-wash); }
+.dropzone.dragging { border-color: var(--gold-deep); background: var(--gold-wash); color: var(--gold-deep); }
+
+.toggle-pair { display: inline-flex; border: 1px solid var(--ink); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.6rem; }
+.toggle-pair button {
+  border: none; border-radius: 0; background: var(--paper); color: var(--ink);
+  font-weight: 600; font-size: .86rem; padding: .65em 1.2em;
+}
+.toggle-pair button.on { background: var(--ink); color: var(--paper); }
+
+.callout {
+  border-left: 3px solid var(--gold-deep);
+  background: var(--gold-wash);
+  padding: .9rem 1.1rem;
+  font-size: .88rem;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: #5c470a;
+}
+.callout p { margin: 0; color: inherit; }

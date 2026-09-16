@@ -1,0 +1,105 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+.rail{
+  border-right: 1px solid var(--line);
+  background: var(--panel);
+  padding: 1.6rem 1.3rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 220px;
+}
+.rail .brand{
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: .1rem;
+  display: flex;
+  align-items: baseline;
+  gap: .4em;
+}
+.rail .brand small{
+  font-family: var(--mono);
+  font-size: .62rem;
+  color: var(--ink-soft);
+  font-weight: 500;
+  letter-spacing: .02em;
+}
+.rail .tagline{
+  font-size: .78rem;
+  color: var(--ink-soft);
+  margin-bottom: 2rem;
+  max-width: 20ch;
+}
+.rail nav{ display: flex; flex-direction: column; gap: .15rem; }
+.rail nav a{
+  text-decoration: none;
+  font-size: .92rem;
+  color: var(--ink-soft);
+  padding: .55em .6em;
+  border-radius: var(--radius);
+  border-left: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rail nav a:hover{ background: var(--panel-alt); color: var(--ink); }
+.rail nav a.active{
+  color: var(--ink);
+  font-weight: 600;
+  border-left-color: var(--gold-deep);
+  background: var(--panel-alt);
+}
+.rail nav a .step{
+  font-family: var(--mono);
+  font-size: .68rem;
+  color: var(--ink-soft);
+}
+.rail .rail-foot{
+  position: absolute;
+  bottom: 1.6rem;
+  left: 1.3rem;
+  right: 1.3rem;
+  font-size: .72rem;
+  color: var(--ink-soft);
+  border-top: 1px solid var(--line);
+  padding-top: .9rem;
+}
+
+.shell{
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 100vh;
+}
+
+.user-block{
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: .7rem;
+}
+.avatar{
+  width: 30px;
+  height: 30px;
+  min-width: 34px;
+  border-radius: 50%;
+  background: #10022c; 
+  color: #fff;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: .95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.user-email{
+  font-size: .78rem;
+  flex: 1;
+  min-width: 0;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

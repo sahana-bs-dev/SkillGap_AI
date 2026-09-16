@@ -1,0 +1,48 @@
+/* Upload.css — page-specific rules only.
+   Shared classes (.panel, .grid-2, .dropzone, .toggle-pair, .field,
+   textarea, .callout, .page-head) come from src/index.css. */
+
+   
+.upload-page {
+  max-width: var(--max);
+  padding: 1.5%;
+}
+
+.form-error {
+  color: var(--gap);
+  background: var(--gap-wash);
+  border: 1px solid #e4c3ba;
+  border-radius: var(--radius);
+  padding: .7em 1em;
+  font-size: .9rem;
+  max-width: none;
+}
+
+.submit-row {
+  margin-top: 1.6rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.submit-row .hint {
+  font-size: .78rem;
+  color: var(--ink-soft);
+}
+
+.preview-panel {
+  margin-top: 1.6rem;
+}
+
+.parsed-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1em;
+  font-family: var(--mono);
+  font-size: .82rem;
+  max-height: 320px;
+  overflow-y: auto;
+}
