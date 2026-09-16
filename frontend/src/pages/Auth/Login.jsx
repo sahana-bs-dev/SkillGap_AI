@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../../context/AuthContext";
 import "./Auth.css";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -23,6 +24,16 @@ export default function Login() {
       setError(err.message);
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleGoogleSuccess(credentialResponse) {
+    setError("");
+    try {
+      await loginWithGoogle(credentialResponse.credential);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.message);
     }
   }
 
@@ -77,16 +88,12 @@ export default function Login() {
 
           <div className="auth-divider">or</div>
 
-          {/* Google sign-in: UI only — backend route not built yet */}
-          <button
-            type="button"
-            className="secondary auth-submit"
-            style={{ marginTop: 0 }}
-            disabled
-            title="Coming soon"
-          >
-            Continue with Google
-          </button>
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setError("Google sign-in failed. Try again.")}
+            />
+          </div>
 
           <div className="auth-switch">
             Don't have an account? <Link to="/signup">Create one</Link>

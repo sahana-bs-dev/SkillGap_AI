@@ -14,3 +14,4 @@ MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "skillgap_ai")
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-this-in-your-env-file")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_MINUTES = 60 * 24  # 1 day
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")

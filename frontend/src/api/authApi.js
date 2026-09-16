@@ -14,6 +14,13 @@ export function login({ email, password }) {
   });
 }
 
+export function googleLogin(idToken) {
+  return apiRequest("/api/auth/google", {
+    method: "POST",
+    body: JSON.stringify({ id_token: idToken }),
+  });
+}
+
 export function resetPassword({ email, new_password }) {
   return apiRequest("/api/auth/reset-password", {
     method: "POST",

@@ -31,3 +31,6 @@ class TokenResponse(BaseModel):
 class ResetPasswordRequest(BaseModel):
     email: EmailStr
     new_password: str = Field(..., min_length=6)
+
+class GoogleLoginRequest(BaseModel):
+    id_token: str
