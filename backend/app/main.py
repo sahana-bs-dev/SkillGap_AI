@@ -4,6 +4,7 @@ Run with: uvicorn main:app --reload
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.parsing import routes as parsing_routes
 
 from app.auth import routes as auth_routes
 
@@ -20,6 +21,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_routes.router)
+app.include_router(parsing_routes.router)
 
 
 @app.get("/")

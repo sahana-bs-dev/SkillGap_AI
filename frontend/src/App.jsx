@@ -5,6 +5,15 @@ import ForgotPassword from "./pages/Auth/ForgotPassword";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import UploadPage from "./pages/Upload/Upload";
+import { useAuth } from "./context/AuthContext";
+import ATSReport from "./pages/ATSReport/ATSReport";
+import MatchReport from "./pages/MatchReport/MatchReport";
+
+function RootRedirect() {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  return <Navigate to={user ? "/upload" : "/login"} replace />;
+}
 
 export default function App() {
   return (
@@ -12,6 +21,7 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+
       <Route
         path="/dashboard"
         element={
@@ -20,10 +30,35 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-      <Route path="/upload" element={<UploadPage />} />
-       <Route path="/" element={<Navigate to="/upload" replace />} />
-        <Route path="*" element={<Navigate to="/upload" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+
+      <Route
+        path="/upload"
+        element={
+          <ProtectedRoute>
+            <UploadPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+  path="/ats-report"
+  element={
+    <ProtectedRoute>
+      <ATSReport />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/match-report"
+  element={
+    <ProtectedRoute>
+      <MatchReport />
+    </ProtectedRoute>
+  }
+/>
+
+      <Route path="/" element={<RootRedirect />} />
+      <Route path="*" element={<RootRedirect />} />
     </Routes>
   );
 }
