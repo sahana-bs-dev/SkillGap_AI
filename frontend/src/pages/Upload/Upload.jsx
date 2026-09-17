@@ -3,6 +3,8 @@ import { uploadForAnalysis } from "../../api/uploadApi";
 import "./Upload.css";
 import Sidebar from "../../components/Layout/Sidebar"; // adjust path to wherever you save it
 import "../../components/Layout/Sidebar.css";
+import { useNavigate } from "react-router-dom";
+import AgentStatusIndicator from "../../components/AgentStatus/AgentStatusIndicator";
 
 const ACCEPTED_TYPES = [".pdf", ".docx"];
 
@@ -15,6 +17,8 @@ export default function UploadPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [parsedPreview, setParsedPreview] = useState(null);
+  const navigate = useNavigate();
+const [routingLabel, setRoutingLabel] = useState("");
 
   const fileInputRef = useRef(null);
 
@@ -56,34 +60,43 @@ export default function UploadPage() {
     return "";
   }
 
-  async function handleSubmit() {
-    const validationError = validate();
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    setError("");
-    setIsSubmitting(true);
-    setParsedPreview(null);
-
-    try {
-      const result = await uploadForAnalysis({
-        resumeFile,
-        resumeText,
-        jdText: mode === "both" ? jdText : "",
-      });
-      setParsedPreview(result);
-      // TODO (Phase 3): once the Supervisor/ATS/Matching agents exist,
-      // navigate(mode === "resume" ? "/ats-report" : "/match-report")
-      // with this parsed data instead of just previewing it here.
-    } catch (err) {
-      setError(err.message || "Something went wrong while parsing. Try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+async function handleSubmit() {
+  const validationError = validate();
+  if (validationError) {
+    setError(validationError);
+    return;
   }
 
+  setError("");
+  setIsSubmitting(true);
+  setParsedPreview(null);
+  setRoutingLabel("");
+
+  try {
+    const result = await uploadForAnalysis({
+      resumeFile,
+      resumeText,
+      jdText: mode === "both" ? jdText : "",
+    });
+    setParsedPreview(result);
+
+    // Branch on flow type — this is the client-side stand-in for the
+    // Supervisor's routing decision until the real endpoint exists.
+    const destination = mode === "resume" ? "/ats-report" : "/match-report";
+    const label = mode === "resume" ? "Routing to ATS Agent…" : "Routing to Matching Agent…";
+    setRoutingLabel(label);
+
+    setTimeout(() => {
+      navigate(destination, {
+        state: { resumeText: result.resumeText, jdText: result.jdText },
+      });
+    }, 600);
+  } catch (err) {
+    setError(err.message || "Something went wrong while parsing. Try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+}
   return (
     <div className="shell">
       <Sidebar />
@@ -170,12 +183,12 @@ export default function UploadPage() {
 
       {error && <p className="form-error">{error}</p>}
 
-      <div className="submit-row">
-        <button type="button" onClick={handleSubmit} disabled={isSubmitting}>
-          {isSubmitting ? "Parsing…" : "Run analysis"}
-        </button>
-        
-      </div>
+<div className="submit-row">
+  <button type="button" onClick={handleSubmit} disabled={isSubmitting}>
+    {isSubmitting ? "Parsing…" : "Run analysis"}
+  </button>
+  <AgentStatusIndicator label={routingLabel} active={!!routingLabel} />
+</div>
 
       {parsedPreview && (
         <div className="panel preview-panel">
