@@ -72,7 +72,8 @@ def google_login(payload: GoogleLoginRequest):
         idinfo = google_id_token.verify_oauth2_token(
             payload.id_token, google_requests.Request(), GOOGLE_CLIENT_ID
         )
-    except ValueError:
+    except ValueError as e:
+        print("Google token verification failed:", e)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid Google token.",
