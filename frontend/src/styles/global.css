@@ -1,0 +1,105 @@
+/* Shared design tokens + component classes used across the analysis pages
+   (ATS Report, Match Report, Skill Gap, Learning Plan, etc). Ported from
+   the reference blueprint so every page stays visually consistent.
+   Import this once in main.jsx / App.jsx before any page-specific CSS. */
+
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --paper:      #F7F8FB;
+  --panel:      #EEF0F6;
+  --panel-alt:  #E4E7F1;
+  --ink:        #14161F;
+  --ink-soft:   #565A68;
+  --line:       #D9DCE6;
+  --line-soft:  #E6E8F0;
+
+  --gold:       #5B4FE8;
+  --gold-deep:  #4338CA;
+  --gold-wash:  #E9E7FD;
+
+  --match:      #1F8A5B;
+  --match-wash: #E0F3EA;
+
+  --gap:        #D1453A;
+  --gap-wash:   #FBE7E5;
+
+  --radius: 4px;
+  --serif: 'Newsreader', Georgia, serif;
+  --sans: 'IBM Plex Sans', -apple-system, Segoe UI, sans-serif;
+  --mono: 'IBM Plex Mono', 'Courier New', monospace;
+  --max: 1080px;
+}
+
+body { font-family: var(--sans); color: var(--ink); background: var(--paper); }
+h1, h2, h3, h4 { font-family: var(--serif); font-weight: 500; margin: 0 0 .5em; color: var(--ink); }
+p { margin: 0 0 1em; color: var(--ink-soft); }
+
+.btn {
+  font-family: var(--sans); font-size: .95rem; font-weight: 600; cursor: pointer;
+  border-radius: var(--radius); border: 1px solid var(--ink);
+  background: var(--ink); color: var(--paper); padding: .75em 1.4em;
+  display: inline-flex; align-items: center; gap: .5em; text-decoration: none;
+}
+.btn.secondary { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+.btn.ghost { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+
+.page-head {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  gap: 2rem; margin-bottom: 2rem; padding-bottom: 1.4rem;
+  border-bottom: 1px solid var(--line);
+}
+.page-head .kicker {
+  font-family: var(--mono); font-size: .72rem; color: var(--gold-deep);
+  margin-bottom: .5rem; display: block;
+}
+
+.panel {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 1.6rem 1.7rem;
+}
+.panel + .panel { margin-top: 1.2rem; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+@media (max-width: 720px) { .grid-2 { grid-template-columns: 1fr; } }
+
+.tag {
+  display: inline-flex; align-items: center; gap: .4em;
+  font-family: var(--mono); font-size: .74rem; padding: .3em .65em;
+  border-radius: 3px; border: 1px solid var(--line); background: var(--paper);
+}
+.tag.match { background: var(--match-wash); border-color: #c3d9bc; color: var(--match); }
+.tag.gap { background: var(--gap-wash); border-color: #e4c3ba; color: var(--gap); }
+.tag.active { background: var(--gold-wash); border-color: #ecd07a; color: var(--gold-deep); }
+
+.score-block { display: flex; align-items: center; gap: 1.6rem; }
+.score-num { font-family: var(--serif); font-size: 3.4rem; font-weight: 600; color: var(--ink); line-height: 1; }
+.score-num sup { font-size: 1.1rem; color: var(--ink-soft); font-family: var(--sans); font-weight: 500; }
+.score-bar-track { height: 8px; background: var(--panel-alt); border-radius: 4px; overflow: hidden; border: 1px solid var(--line); }
+.score-bar-fill { height: 100%; background: var(--gold); }
+.score-bar-fill.match-fill { background: var(--match); }
+
+.row-list { display: flex; flex-direction: column; }
+.row-item { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; padding: .9rem 0; border-bottom: 1px solid var(--line-soft); }
+.row-item:last-child { border-bottom: none; }
+.row-item .label { font-weight: 600; }
+.row-item .desc { color: var(--ink-soft); font-size: .92rem; margin: 0; }
+
+.agent-strip { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 2rem; }
+.agent-chip {
+  display: flex; align-items: center; gap: .5em; border: 1px solid var(--line);
+  background: var(--paper); border-radius: var(--radius); padding: .5em .8em; font-size: .82rem;
+}
+.agent-chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--line); flex: none; }
+.agent-chip.done .dot { background: var(--match); }
+.agent-chip.working .dot { background: var(--gold); box-shadow: 0 0 0 3px var(--gold-wash); }
+.agent-chip.idle { color: var(--ink-soft); }
+
+.callout {
+  border-left: 3px solid var(--gold-deep); background: var(--gold-wash);
+  padding: .9rem 1.1rem; font-size: .88rem; border-radius: 0 var(--radius) var(--radius) 0; color: #5c470a;
+}
+.callout p { margin: 0; color: inherit; }
+.callout a { color: inherit; text-decoration: underline; }
+
+footer.note { margin-top: 3rem; padding-top: 1.2rem; border-top: 1px solid var(--line); font-size: .78rem; color: var(--ink-soft); }

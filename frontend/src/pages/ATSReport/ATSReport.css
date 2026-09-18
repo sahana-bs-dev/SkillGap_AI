@@ -1,0 +1,8 @@
+/* ATS Report page — layout is almost entirely covered by the shared
+   classes in src/styles/global.css (.panel, .score-block, .row-list,
+   .agent-strip, .tag, .callout). This file is for anything specific
+   to this page only. */
+
+.route {
+  max-width: var(--max);
+}

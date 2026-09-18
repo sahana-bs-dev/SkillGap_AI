@@ -10,6 +10,7 @@ The frontend(UI) is done.
 # To be done:
 - left sidebar avatar and email to be aligned properly 
 - dashboard to be restructured
+- the sidebar to move left when not required
 
 # Files modified
         modified:   src/App.jsx
@@ -20,4 +21,3 @@ The frontend(UI) is done.
         modified:   src/main.jsx
         new file:   src/pages/Upload/Upload.css
         new file:   src/pages/Upload/Upload.jsx
-
