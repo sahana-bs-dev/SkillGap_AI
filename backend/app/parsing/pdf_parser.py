@@ -5,6 +5,7 @@ if pdfplumber comes back empty on a given file.
 """
 
 import io
+import re
 import pdfplumber
 from PyPDF2 import PdfReader
 
@@ -36,5 +37,7 @@ def _extract_with_pypdf2(file_bytes: bytes) -> str:
 
 
 def _clean(text: str) -> str:
+    # Bullet glyphs the PDF font doesn't map to Unicode come out as "(cid:127)"
+    text = re.sub(r"\(cid:127\)", "•", text)
     lines = [line.strip() for line in text.splitlines()]
     return "\n".join(line for line in lines if line)

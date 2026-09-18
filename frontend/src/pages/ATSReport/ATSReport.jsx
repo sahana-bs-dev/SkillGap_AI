@@ -4,6 +4,8 @@ import AgentStatusIndicator from "../../components/AgentStatus/AgentStatusIndica
 import ScoreRing from "../../components/ScoreRing";
 import { runATSAnalysis } from "../../api/analyzeApi";
 import "./ATSReport.css";
+import Sidebar from "../../components/Layout/Sidebar";
+import "../../components/Layout/Sidebar.css";
 
 // Route: resume-only intake (Supervisor -> ATS Agent only, no JD).
 // Expects the parsed resume text from the Upload page via router state:
@@ -55,91 +57,94 @@ export default function ATSReport() {
   ];
 
   return (
-    <section className="route">
-      <div className="page-head">
-        <div>
-          <span className="kicker"></span>
-          <h1>ATS compatibility report</h1>
-          <p>Checked against common tracking-system parsers</p>
+    <div className="shell">
+      <Sidebar />
+      <section className="route" style={{ padding: "2rem" }}>
+        <div className="page-head">
+          <div>
+            <span className="kicker"></span>
+            <h1>ATS compatibility report</h1>
+            <p>Checked against common tracking-system parsers</p>
+          </div>
+          <Link to="/resume-rewrite" className="btn secondary">
+            Fix with Rewrite Agent
+          </Link>
         </div>
-        <Link to="/resume-rewrite" className="btn secondary">
-          Fix with Rewrite Agent
-        </Link>
-      </div>
 
-      <AgentStatusIndicator agents={agents} />
+        <AgentStatusIndicator agents={agents} />
 
-      {status === "loading" && (
-        <div className="panel">
-          <p>Running the ATS Agent…</p>
-        </div>
-      )}
+        {status === "loading" && (
+          <div className="panel">
+            <p>Running the ATS Agent…</p>
+          </div>
+        )}
 
-      {status === "error" && (
-        <div className="panel">
-          <p style={{ color: "var(--gap)" }}>{errorMsg}</p>
-        </div>
-      )}
+        {status === "error" && (
+          <div className="panel">
+            <p style={{ color: "var(--gap)" }}>{errorMsg}</p>
+          </div>
+        )}
 
-      {status === "done" && report && (
-        <>
-          <ScoreRing
-            score={report.score}
-            variant="ats"
-            caption={scoreCaption(report.score)}
-          />
+        {status === "done" && report && (
+          <>
+            <ScoreRing
+              score={report.score}
+              variant="ats"
+              caption={scoreCaption(report.score)}
+            />
 
-          <div className="grid-2" style={{ marginTop: "1.2rem" }}>
-            <div className="panel">
-              <h3>Parsing &amp; formatting issues</h3>
-              {report.issues.length === 0 ? (
-                <p>No issues found — this resume parses cleanly.</p>
-              ) : (
-                <div className="row-list">
-                  {report.issues.map((issue, i) => (
-                    <div className="row-item" key={i}>
-                      <div>
-                        <div className="label">{issue.category}</div>
-                        <p className="desc">{issue.message}</p>
+            <div className="grid-2" style={{ marginTop: "1.2rem" }}>
+              <div className="panel">
+                <h3>Parsing &amp; formatting issues</h3>
+                {report.issues.length === 0 ? (
+                  <p>No issues found — this resume parses cleanly.</p>
+                ) : (
+                  <div className="row-list">
+                    {report.issues.map((issue, i) => (
+                      <div className="row-item" key={i}>
+                        <div>
+                          <div className="label">{issue.category}</div>
+                          <p className="desc">{issue.message}</p>
+                        </div>
+                        <span className={`tag ${severityTag(issue.severity)}`}>
+                          {issue.severity}
+                        </span>
                       </div>
-                      <span className={`tag ${severityTag(issue.severity)}`}>
-                        {issue.severity}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="panel">
+                <h3>Improvement suggestions</h3>
+                {report.suggestions.length === 0 ? (
+                  <p>No further suggestions.</p>
+                ) : (
+                  <div className="row-list">
+                    {report.suggestions.map((s, i) => (
+                      <div className="row-item" key={i}>
+                        <div>
+                          <p className="desc">{s}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="panel">
-              <h3>Improvement suggestions</h3>
-              {report.suggestions.length === 0 ? (
-                <p>No further suggestions.</p>
-              ) : (
-                <div className="row-list">
-                  {report.suggestions.map((s, i) => (
-                    <div className="row-item" key={i}>
-                      <div>
-                        <p className="desc">{s}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+            <div className="callout" style={{ marginTop: "1.2rem" }}>
+              <p>
+                Have a specific job in mind? Add the job description to also run the JD
+                Analysis and Matching Agents — <Link to="/upload">go to New analysis</Link>.
+              </p>
             </div>
-          </div>
+          </>
+        )}
 
-          <div className="callout" style={{ marginTop: "1.2rem" }}>
-            <p>
-              Have a specific job in mind? Add the job description to also run the JD
-              Analysis and Matching Agents — <Link to="/upload">go to New analysis</Link>.
-            </p>
-          </div>
-        </>
-      )}
-
-      <footer className="note">SkillGap AI</footer>
-    </section>
+        <footer className="note">SkillGap AI</footer>
+      </section>
+    </div>
   );
 }
 
