@@ -11,3 +11,6 @@ pdfplumber
 PyPDF2
 python-docx
 python-multipart
+sendgrid
+pip-system-certs
+groq

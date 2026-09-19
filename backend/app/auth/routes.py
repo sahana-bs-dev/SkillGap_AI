@@ -2,10 +2,13 @@
 POST /api/auth/signup
 POST /api/auth/login
 POST /api/auth/google
-GET  /api/auth/me   — protected, proves the JWT -> user lookup chain works
+GET  /api/auth/me              — protected, proves the JWT -> user lookup chain works
+POST /api/auth/forgot-password — step 1: send OTP to email
+POST /api/auth/verify-otp      — step 2: verify OTP (valid 50s)
+POST /api/auth/reset-password  — step 3: verify OTP again + set new password
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_requests
 
@@ -17,8 +20,11 @@ from app.auth.jwt_handler import (
 )
 from app.auth.models import (
     TokenResponse, UserLogin, UserOut, UserSignup,
-    ResetPasswordRequest, GoogleLoginRequest,
+    ForgotPasswordRequest, VerifyOtpRequest, ResetPasswordRequest,
+    GoogleLoginRequest,
 )
+from app.auth.otp_store import generate_otp, verify_otp, clear_otp
+from app.auth.email_utils import send_otp_email
 from app.db.mongo_client import users_collection
 from app.config import GOOGLE_CLIENT_ID  # see note below
 
@@ -111,9 +117,10 @@ def get_me(current_user: dict = Depends(get_current_user)):
         name=current_user["name"],
         email=current_user["email"],
     )
-    
-@router.post("/reset-password")
-def reset_password(payload: ResetPasswordRequest):
+
+
+@router.post("/forgot-password")
+def forgot_password(payload: ForgotPasswordRequest, background_tasks: BackgroundTasks):
     user = users_collection.find_one({"email": payload.email})
     if not user:
         raise HTTPException(
@@ -121,9 +128,33 @@ def reset_password(payload: ResetPasswordRequest):
             detail="No account found with this email.",
         )
 
+    code = generate_otp(payload.email)
+    background_tasks.add_task(send_otp_email, payload.email, code)
+    return {"message": "Verification code sent."}
+
+
+@router.post("/verify-otp")
+def verify_otp_route(payload: VerifyOtpRequest):
+    if not verify_otp(payload.email, payload.code):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired code.",
+        )
+    return {"message": "Code verified."}
+
+
+@router.post("/reset-password")
+def reset_password(payload: ResetPasswordRequest):
+    if not verify_otp(payload.email, payload.code):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired code.",
+        )
+
     users_collection.update_one(
         {"email": payload.email},
         {"$set": {"password": hash_password(payload.new_password)}},
     )
+    clear_otp(payload.email)
 
     return {"message": "Password updated successfully."}
