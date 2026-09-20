@@ -1,17 +1,25 @@
 """
-JD Analysis Agent
-Model: Groq llama-3.3-70b-versatile
+JD Analysis Agent — Groq (llama-3.3-70b-versatile).
 
-Takes a raw job description and extracts structured, categorized skills plus
-role metadata, for the Matching Agent to consume next.
+Extracts categorized skills and role metadata from a raw job description,
+for the Matching Agent to consume next.
 """
 
-from app.llm.groq_client import call_groq_json
-from app.llm.schemas import JDAnalysisOutput
+from __future__ import annotations
 
-MODEL = "llama-3.3-70b-versatile"
+from app.agents.base_agent import BaseAgent
+from app.llm.schemas import AgentName, JDAnalysisInput, JDAnalysisOutput
 
-SYSTEM_PROMPT = """You are the JD Analysis Agent in a resume-matching pipeline.
+JD_ANALYSIS_MODEL = "openai/gpt-oss-120b"
+
+
+class JDAnalysisAgent(BaseAgent[JDAnalysisInput, JDAnalysisOutput]):
+    name = AgentName.JD_ANALYSIS
+    output_schema = JDAnalysisOutput
+
+    def build_prompt(self, input_data: JDAnalysisInput) -> str:
+        return f"""
+You are the JD Analysis Agent in a resume-matching pipeline.
 
 Given a raw job description, extract:
 - role_title: the job title being advertised (null if not stated)
@@ -29,29 +37,19 @@ Rules:
   building applications with the React.js framework").
 - Deduplicate across the three skill lists — a given skill should appear in
   exactly one of required_skills / preferred_skills / implicit_skills.
-- If the JD is vague or very short, it's fine for a list to be empty — do
-  not pad it with guesses.
-- Return ONLY valid JSON matching this schema, nothing else, no markdown
-  fences, no commentary:
-{
-  "role_title": string | null,
-  "seniority": string | null,
-  "required_skills": [string],
-  "preferred_skills": [string],
-  "implicit_skills": [string]
-}
-"""
+- If the JD is vague or short, empty lists are fine — do not pad with guesses.
 
+Return ONLY a JSON object with this exact shape:
+{{
+  "role_title": "<string or null>",
+  "seniority": "<string or null>",
+  "required_skills": ["..."],
+  "preferred_skills": ["..."],
+  "implicit_skills": ["..."]
+}}
 
-def run_jd_analysis_agent(jd_text: str) -> JDAnalysisOutput:
-    if not jd_text or not jd_text.strip():
-        raise ValueError("jd_text is empty")
-
-    raw = call_groq_json(
-        model=MODEL,
-        system_prompt=SYSTEM_PROMPT,
-        user_prompt=f"JOB DESCRIPTION:\n\n{jd_text.strip()}",
-        temperature=0.2,
-    )
-
-    return JDAnalysisOutput(**raw)
+JOB DESCRIPTION:
+\"\"\"
+{input_data.jd_text}
+\"\"\"
+""".strip()

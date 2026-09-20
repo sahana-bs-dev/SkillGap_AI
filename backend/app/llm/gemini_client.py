@@ -1,20 +1,17 @@
 """
 Thin wrapper around the Gemini API (google-genai SDK — NOT the deprecated
 google-generativeai package) so every agent that uses Gemini goes through
-one place.
+one place, mirroring GroqClient's shape in groq_client.py.
 
 Env var required: GEMINI_API_KEY
 Install: pip install google-genai
 """
 
+import json
 import os
-from typing import Type, TypeVar
 
 from google import genai
 from google.genai import types
-from pydantic import BaseModel
-
-T = TypeVar("T", bound=BaseModel)
 
 _client: genai.Client | None = None
 
@@ -29,38 +26,36 @@ def _get_client() -> genai.Client:
     return _client
 
 
-def call_gemini_structured(
-    model: str,
-    system_prompt: str,
-    user_prompt: str,
-    response_schema: Type[T],
-    temperature: float = 0.1,
-) -> T:
+class GeminiClient:
     """
-    Calls Gemini with a Pydantic response_schema and returns an already-
-    validated instance of that schema (response.parsed does the parsing +
-    validation for us — no manual json.loads needed).
+    complete_json(model, prompt) -> dict
+
+    Sends `prompt` as the single content, with response_mime_type set to
+    force JSON-only output. Parses the result with json.loads and raises a
+    clear ValueError with a truncated preview of the raw output if Gemini
+    ever returns something that isn't valid JSON.
     """
-    client = _get_client()
 
-    response = client.models.generate_content(
-        model=model,
-        contents=user_prompt,
-        config=types.GenerateContentConfig(
-            system_instruction=system_prompt,
-            temperature=temperature,
-            response_mime_type="application/json",
-            response_schema=response_schema,
-        ),
-    )
+    def __init__(self, temperature: float = 0.1):
+        self.temperature = temperature
 
-    parsed = response.parsed
-    if parsed is None:
-        # Fallback: schema-constrained generation still occasionally returns
-        # text that needs a manual parse — surface it clearly instead of
-        # silently returning None.
-        raise ValueError(
-            f"Gemini response could not be parsed into {response_schema.__name__}. "
-            f"Raw text:\n{response.text}"
+    def complete_json(self, model: str, prompt: str) -> dict:
+        client = _get_client()
+
+        response = client.models.generate_content(
+            model=model,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=self.temperature,
+                response_mime_type="application/json",
+            ),
         )
-    return parsed
+
+        raw = response.text
+        try:
+            return json.loads(raw)
+        except json.JSONDecodeError as e:
+            preview = raw[:300] if raw else raw
+            raise ValueError(
+                f"Gemini did not return valid JSON: {e}\nRaw output preview:\n{preview}"
+            )

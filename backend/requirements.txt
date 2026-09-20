@@ -13,3 +13,4 @@ python-docx
 python-multipart
 groq
 google-genai
+sendgrid
