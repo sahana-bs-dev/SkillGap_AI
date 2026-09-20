@@ -8,6 +8,7 @@ import UploadPage from "./pages/Upload/Upload";
 import { useAuth } from "./context/AuthContext";
 import ATSReport from "./pages/ATSReport/ATSReport";
 import MatchReport from "./pages/MatchReport/MatchReport";
+import SkillGapPlan from "./pages/SkillGapPlan/SkillGapPlan";
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -53,6 +54,15 @@ export default function App() {
   element={
     <ProtectedRoute>
       <MatchReport />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/skill-gap"
+  element={
+    <ProtectedRoute>
+      <SkillGapPlan />
     </ProtectedRoute>
   }
 />

@@ -34,3 +34,30 @@ export async function runMatchAnalysis(resumeText, jdText) {
 
   return res.json();
 }
+
+
+export async function runSkillGapAnalysis(matchingOutput) {
+  const res = await fetch(`${API_BASE}/analyze/skill-gap`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ matching_output: matchingOutput }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Skill gap analysis failed (${res.status})`);
+  }
+  return res.json();
+}
+
+export async function runLearningPlan(gaps) {
+  const res = await fetch(`${API_BASE}/analyze/learning`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ gaps }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Learning plan generation failed (${res.status})`);
+  }
+  return res.json();
+}

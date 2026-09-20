@@ -15,7 +15,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-
+from app.agents.learning_agent import LEARNING_MODEL, LearningAgent
+from app.agents.skill_gap_agent import SKILL_GAP_MODEL, SkillGapAgent
 from app.agents.ats_agent import ATS_MODEL, ATSAgent
 from app.agents.jd_analysis_agent import JD_ANALYSIS_MODEL, JDAnalysisAgent
 from app.agents.matching_agent import MATCHING_MODEL, MatchingAgent
@@ -28,6 +29,10 @@ from app.llm.schemas import (
     JDAnalysisOutput,
     MatchingInput,
     MatchingOutput,
+    LearningInput,
+    LearningOutput,
+    SkillGapInput,
+    SkillGapOutput,
 )
 
 router = APIRouter(prefix="/analyze", tags=["analyze"])
@@ -40,6 +45,8 @@ _ats_agent = ATSAgent(llm_client=_groq_client, model=ATS_MODEL)
 _jd_agent = JDAnalysisAgent(llm_client=_groq_client, model=JD_ANALYSIS_MODEL)
 _matching_agent = MatchingAgent(llm_client=_groq_client, model=MATCHING_MODEL)
 
+_skill_gap_agent = SkillGapAgent(llm_client=_groq_client, model=SKILL_GAP_MODEL)
+_learning_agent = LearningAgent(llm_client=_groq_client, model=LEARNING_MODEL)
 
 class ATSRequest(BaseModel):
     resume_text: str
@@ -93,3 +100,18 @@ def analyze_match(payload: MatchRequest):
     if not match_result.success:
         raise HTTPException(status_code=502, detail=f"Matching failed: {match_result.error}")
     return match_result.data
+
+@router.post("/skill-gap", response_model=SkillGapOutput)
+def analyze_skill_gap(payload: SkillGapInput):
+    result = _skill_gap_agent.run(payload)
+    if not result.success:
+        raise HTTPException(status_code=502, detail=f"Skill gap analysis failed: {result.error}")
+    return result.data
+
+
+@router.post("/learning", response_model=LearningOutput)
+def analyze_learning(payload: LearningInput):
+    result = _learning_agent.run(payload)
+    if not result.success:
+        raise HTTPException(status_code=502, detail=f"Learning plan generation failed: {result.error}")
+    return result.data
