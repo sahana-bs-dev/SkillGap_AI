@@ -5,7 +5,6 @@
 **Scope (per roadmap):** PDF/DOCX text extraction service, `/upload` endpoint that returns parsed text.
 
 ---
-
 ## Tech / Packages Used
 
 | Package | Purpose |

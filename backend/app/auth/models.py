@@ -27,10 +27,22 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserOut
-    
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class VerifyOtpRequest(BaseModel):
+    email: EmailStr
+    code: str
+
+
 class ResetPasswordRequest(BaseModel):
     email: EmailStr
+    code: str
     new_password: str = Field(..., min_length=6)
+
 
 class GoogleLoginRequest(BaseModel):
     id_token: str
