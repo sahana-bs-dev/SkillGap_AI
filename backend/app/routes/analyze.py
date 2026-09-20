@@ -1,39 +1,52 @@
 """
-POST /analyze/ats
+/analyze/jd and /analyze/match routes.
 
-Runs the ATS Agent on parsed resume text. This is what the Supervisor's
-"resume-only" route calls (per app/agents/supervisor.py's decide_route).
+NOTE: if you already have app/routes/analyze.py from the ATS Agent (Phase 4),
+add the router below to that file instead of replacing it — just append the
+two new request models and two new endpoints, and keep the existing
+`router = APIRouter(...)` line.
+
+If Phase 3's orchestration/pipeline.py already defines how the Supervisor
+chains agents, prefer calling into that instead of calling the agents
+directly here — this file calls them directly so Phase 5 is testable on its
+own before it's wired into the Supervisor.
 """
 
-from __future__ import annotations
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 
-from fastapi import APIRouter, HTTPException, status
-
-from app.agents.ats_agent import ATSAgent, ATS_MODEL
-from app.llm.groq_client import groq_client
-from app.llm.schemas import ATSInput, ATSOutput
+from app.agents.jd_analysis_agent import run_jd_analysis_agent
+from app.agents.matching_agent import run_matching_agent
+from app.llm.schemas import JDAnalysisOutput, MatchingOutput
 
 router = APIRouter(prefix="/analyze", tags=["analyze"])
 
-# One shared agent instance — it's stateless (each .run() call is independent),
-# so there's no need to construct a new one per request.
-ats_agent = ATSAgent(llm_client=groq_client, model=ATS_MODEL)
+
+class JDAnalyzeRequest(BaseModel):
+    jd_text: str
 
 
-@router.post("/ats", response_model=ATSOutput)
-def analyze_ats(payload: ATSInput):
-    if not payload.resume_text.strip():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="resume_text is required.",
-        )
+class MatchRequest(BaseModel):
+    resume_text: str
+    jd_text: str
 
-    result = ats_agent.run(payload)
 
-    if not result.success:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"ATS agent failed: {result.error}",
-        )
+@router.post("/jd", response_model=JDAnalysisOutput)
+def analyze_jd(payload: JDAnalyzeRequest):
+    try:
+        return run_jd_analysis_agent(payload.jd_text)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"JD analysis failed: {e}")
 
-    return result.data
+
+@router.post("/match", response_model=MatchingOutput)
+def analyze_match(payload: MatchRequest):
+    try:
+        jd_analysis = run_jd_analysis_agent(payload.jd_text)
+        return run_matching_agent(payload.resume_text, jd_analysis)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Matching failed: {e}")
