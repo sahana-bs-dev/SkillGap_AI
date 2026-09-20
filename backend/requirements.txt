@@ -11,3 +11,5 @@ pdfplumber
 PyPDF2
 python-docx
 python-multipart
+groq
+google-genai
