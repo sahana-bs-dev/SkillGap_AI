@@ -111,12 +111,16 @@ class LearningInput(BaseModel):
     gaps: list[SkillGapItem]
 
 
+class LearningResource(BaseModel):
+    title: str
+    url: str
+
+
 class LearningPlanItem(BaseModel):
     skill: str
-    learn_resources: list[str] = []     # pulled from curated_resources.json, never generated raw
-    practice_resources: list[str] = []
+    learn_resources: list[LearningResource] = []     # pulled from curated_resources.json, never generated raw
+    practice_resources: list[LearningResource] = []
     build_project: Optional[str] = None
-
 
 class LearningOutput(BaseModel):
     plan: list[LearningPlanItem] = []

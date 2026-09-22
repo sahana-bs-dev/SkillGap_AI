@@ -14,3 +14,4 @@ python-multipart
 groq
 google-genai
 sendgrid
+requests

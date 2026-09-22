@@ -15,6 +15,7 @@ const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
 export default function SkillGapPlan() {
   const { state } = useLocation();
   const matchingOutput = state?.matchingOutput;
+  const resumeText = state?.resumeText;
 
   const [status, setStatus] = useState("loading"); // 'loading' | 'done' | 'error'
   const [gapStage, setGapStage] = useState("idle"); // 'idle' | 'working' | 'done' | 'error'
@@ -213,11 +214,13 @@ export default function SkillGapPlan() {
                                   <div className="label">
                                     {checked[`${gap.skill}::${step.key}`] ? "☑" : "☐"} {step.label}
                                   </div>
-                                  {step.items.map((item, k) => (
-                                    <p className="desc" key={k}>
-                                      {item}
-                                    </p>
-                                  ))}
+                                  {step.items.map((item, k) =>
+                                    typeof item === "string" ? (
+                                      <p className="desc" key={k}>{item}</p>
+                                    ) : (
+                                      <p className="desc" key={k}><a href={item.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>{item.title}</a></p>
+                                    )
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -237,7 +240,7 @@ export default function SkillGapPlan() {
             <div className="callout" style={{ marginTop: "1.2rem" }}>
               <p>
                 Ready to update your resume with these projects once built?{" "}
-                <Link to="/resume-rewrite">Go to Resume Rewrite</Link>.
+                <Link to="/resume-rewrite" state={{ resumeText, matchingOutput, gaps }}>Go to Resume Rewrite</Link>.
               </p>
             </div>
           </>

@@ -1,74 +1,74 @@
 {
   "react": {
-    "learn": ["React Docs — https://react.dev/learn"],
-    "practice": ["React Official Tutorial — https://react.dev/learn/tutorial-tic-tac-toe"]
+    "learn": [{"title": "React Docs", "url": "https://react.dev/learn"}],
+    "practice": [{"title": "React Official Tutorial", "url": "https://react.dev/learn/tutorial-tic-tac-toe"}]
   },
   "next.js": {
-    "learn": ["Next.js Docs — https://nextjs.org/docs"],
-    "practice": ["Next.js Learn Course — https://nextjs.org/learn"]
+    "learn": [{"title": "Next.js Docs", "url": "https://nextjs.org/docs"}],
+    "practice": [{"title": "Next.js Learn Course", "url": "https://nextjs.org/learn"}]
   },
   "typescript": {
-    "learn": ["TypeScript Handbook — https://www.typescriptlang.org/docs/handbook/intro.html"],
-    "practice": ["TypeScript Exercises — https://typescript-exercises.github.io/"]
+    "learn": [{"title": "TypeScript Handbook", "url": "https://www.typescriptlang.org/docs/handbook/intro.html"}],
+    "practice": [{"title": "TypeScript Exercises", "url": "https://typescript-exercises.github.io/"}]
   },
   "javascript": {
-    "learn": ["MDN JavaScript Guide — https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide"],
-    "practice": ["freeCodeCamp JS Curriculum — https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/"]
+    "learn": [{"title": "MDN JavaScript Guide", "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide"}],
+    "practice": [{"title": "freeCodeCamp JS Curriculum", "url": "https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/"}]
   },
   "python": {
-    "learn": ["Official Python Tutorial — https://docs.python.org/3/tutorial/"],
-    "practice": ["Real Python Tutorials — https://realpython.com/"]
+    "learn": [{"title": "Official Python Tutorial", "url": "https://docs.python.org/3/tutorial/"}],
+    "practice": [{"title": "Real Python Tutorials", "url": "https://realpython.com/"}]
   },
   "sql": {
-    "learn": ["PostgreSQL Docs — https://www.postgresql.org/docs/"],
-    "practice": ["SQLZoo Interactive Exercises — https://sqlzoo.net/"]
+    "learn": [{"title": "PostgreSQL Docs", "url": "https://www.postgresql.org/docs/"}],
+    "practice": [{"title": "SQLZoo Interactive Exercises", "url": "https://sqlzoo.net/"}]
   },
   "docker": {
-    "learn": ["Docker Get Started Guide — https://docs.docker.com/get-started/"],
-    "practice": ["Docker Curriculum — https://docker-curriculum.com/"]
+    "learn": [{"title": "Docker Get Started Guide", "url": "https://docs.docker.com/get-started/"}],
+    "practice": [{"title": "Docker Curriculum", "url": "https://docker-curriculum.com/"}]
   },
   "git": {
-    "learn": ["Pro Git Book — https://git-scm.com/book/en/v2"],
-    "practice": ["Learn Git Branching — https://learngitbranching.js.org/"]
+    "learn": [{"title": "Pro Git Book", "url": "https://git-scm.com/book/en/v2"}],
+    "practice": [{"title": "Learn Git Branching", "url": "https://learngitbranching.js.org/"}]
   },
   "rest apis": {
-    "learn": ["MDN HTTP Overview — https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview"],
-    "practice": ["FastAPI Tutorial — https://fastapi.tiangolo.com/tutorial/"]
+    "learn": [{"title": "MDN HTTP Overview", "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview"}],
+    "practice": [{"title": "FastAPI Tutorial", "url": "https://fastapi.tiangolo.com/tutorial/"}]
   },
   "data structures and algorithms": {
-    "learn": ["roadmap.sh DSA Guide — https://roadmap.sh/datastructures-and-algorithms"],
-    "practice": ["NeetCode Practice — https://neetcode.io/"]
+    "learn": [{"title": "roadmap.sh DSA Guide", "url": "https://roadmap.sh/datastructures-and-algorithms"}],
+    "practice": [{"title": "NeetCode Practice", "url": "https://neetcode.io/"}]
   },
   "system design": {
-    "learn": ["System Design Primer — https://github.com/donnemartin/system-design-primer"],
-    "practice": ["System Design Primer Exercises — https://github.com/donnemartin/system-design-primer#study-guide"]
+    "learn": [{"title": "System Design Primer", "url": "https://github.com/donnemartin/system-design-primer"}],
+    "practice": [{"title": "System Design Primer Exercises", "url": "https://github.com/donnemartin/system-design-primer#study-guide"}]
   },
   "machine learning": {
-    "learn": ["scikit-learn Tutorials — https://scikit-learn.org/stable/tutorial/index.html"],
-    "practice": ["Kaggle Learn — https://www.kaggle.com/learn"]
+    "learn": [{"title": "scikit-learn Tutorials", "url": "https://scikit-learn.org/stable/tutorial/index.html"}],
+    "practice": [{"title": "Kaggle Learn", "url": "https://www.kaggle.com/learn"}]
   },
   "deep learning": {
-    "learn": ["PyTorch Tutorials — https://pytorch.org/tutorials/"],
-    "practice": ["TensorFlow Tutorials — https://www.tensorflow.org/tutorials"]
+    "learn": [{"title": "PyTorch Tutorials", "url": "https://pytorch.org/tutorials/"}],
+    "practice": [{"title": "TensorFlow Tutorials", "url": "https://www.tensorflow.org/tutorials"}]
   },
   "nlp": {
-    "learn": ["Hugging Face NLP Course — https://huggingface.co/learn/nlp-course"],
-    "practice": ["Hugging Face Course Exercises — https://huggingface.co/learn/nlp-course/chapter1/1"]
+    "learn": [{"title": "Hugging Face NLP Course", "url": "https://huggingface.co/learn/nlp-course"}],
+    "practice": [{"title": "Hugging Face Course Exercises", "url": "https://huggingface.co/learn/nlp-course/chapter1/1"}]
   },
   "mongodb": {
-    "learn": ["MongoDB Docs — https://www.mongodb.com/docs/"],
-    "practice": ["MongoDB University — https://learn.mongodb.com/"]
+    "learn": [{"title": "MongoDB Docs", "url": "https://www.mongodb.com/docs/"}],
+    "practice": [{"title": "MongoDB University", "url": "https://learn.mongodb.com/"}]
   },
   "aws": {
-    "learn": ["AWS Getting Started — https://aws.amazon.com/getting-started/"],
-    "practice": ["AWS Free Tier Hands-on — https://aws.amazon.com/free/"]
+    "learn": [{"title": "AWS Getting Started", "url": "https://aws.amazon.com/getting-started/"}],
+    "practice": [{"title": "AWS Free Tier Hands-on", "url": "https://aws.amazon.com/free/"}]
   },
   "testing": {
-    "learn": ["Jest Docs — https://jestjs.io/docs/getting-started"],
-    "practice": ["Testing Library Docs — https://testing-library.com/docs/"]
+    "learn": [{"title": "Jest Docs", "url": "https://jestjs.io/docs/getting-started"}],
+    "practice": [{"title": "Testing Library Docs", "url": "https://testing-library.com/docs/"}]
   },
   "ci/cd": {
-    "learn": ["GitHub Actions Docs — https://docs.github.com/en/actions"],
-    "practice": ["GitHub Actions Quickstart — https://docs.github.com/en/actions/quickstart"]
+    "learn": [{"title": "GitHub Actions Docs", "url": "https://docs.github.com/en/actions"}],
+    "practice": [{"title": "GitHub Actions Quickstart", "url": "https://docs.github.com/en/actions/quickstart"}]
   }
 }
