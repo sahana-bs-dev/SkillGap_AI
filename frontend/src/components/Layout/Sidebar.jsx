@@ -8,7 +8,6 @@ const NAV_ITEMS = [
   { to: "/ats-report", label: "ATS report" },
   { to: "/match-report", label: "Match report", step: "02" },
   { to: "/skill-gap", label: "Skill gap", step: "03" },
-  { to: "/learning-plan", label: "Learning plan", step: "04" },
   { to: "/resume-rewrite", label: "Resume rewrite", step: "05" },
   { to: "/history", label: "History" },
 ];

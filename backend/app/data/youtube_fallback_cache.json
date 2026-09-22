@@ -1,0 +1,336 @@
+{
+  "team collaboration": {
+    "learn": [
+      {
+        "title": "\ud83c\udfeb Microsoft Teams Tutorial in 10 min",
+        "url": "https://www.youtube.com/watch?v=VDDPoYOQYfM"
+      }
+    ],
+    "practice": []
+  },
+  "debugging": {
+    "learn": [
+      {
+        "title": "Best Debugging Tips For Beginners",
+        "url": "https://www.youtube.com/watch?v=gaminoBsQx0"
+      }
+    ],
+    "practice": []
+  },
+  "code documentation": {
+    "learn": [
+      {
+        "title": "How to Document Your Code Like a Pro",
+        "url": "https://www.youtube.com/watch?v=L7Ry-Fiij-M"
+      }
+    ],
+    "practice": []
+  },
+  "code organization": {
+    "learn": [
+      {
+        "title": "How Complete Beginners Master 95% of Claude Code in 28 minutes",
+        "url": "https://www.youtube.com/watch?v=Q1wJe_hSPic"
+      }
+    ],
+    "practice": []
+  },
+  "workflow automation": {
+    "learn": [
+      {
+        "title": "AI Workflow Automation Tutorial | How to Build No Code AI Workflows | AI Automation | Simplilearn",
+        "url": "https://www.youtube.com/watch?v=rZRPElFzrqc"
+      }
+    ],
+    "practice": []
+  },
+  "git": {
+    "learn": [
+      {
+        "title": "Complete Git and GitHub Tutorial for Beginners",
+        "url": "https://www.youtube.com/watch?v=Ez8F0nW6S-w"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Git Tutorial for Beginners | Complete Hands-on Git Course (Step-by-Step)",
+        "url": "https://www.youtube.com/watch?v=Sxs6qEGcp7Y"
+      }
+    ]
+  },
+  "react": {
+    "learn": [
+      {
+        "title": "React Tutorial for Beginners",
+        "url": "https://www.youtube.com/watch?v=SqcY0GlETPk"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Every React Concept Explained in 12 Minutes",
+        "url": "https://www.youtube.com/watch?v=wIyHSOugGGw"
+      }
+    ]
+  },
+  "rest apis": {
+    "learn": [
+      {
+        "title": "What Is REST API? Examples And How To Use It: Crash Course System Design #3",
+        "url": "https://www.youtube.com/watch?v=-mN3VyJuCjM"
+      }
+    ],
+    "practice": [
+      {
+        "title": "APIs Explained with Real Use Cases",
+        "url": "https://www.youtube.com/watch?v=bW-ji7AT1cc"
+      }
+    ]
+  },
+  "testing": {
+    "learn": [
+      {
+        "title": "Software Testing Tutorial For Beginners | Manual &amp; Automation Testing | Selenium Training | Edureka",
+        "url": "https://www.youtube.com/watch?v=T3q6QcCQZQg"
+      }
+    ],
+    "practice": [
+      {
+        "title": "The Ultimate Mobility Challenge",
+        "url": "https://www.youtube.com/watch?v=ttTX-LXTLHw"
+      }
+    ]
+  },
+  "public speaking": {
+    "learn": [
+      {
+        "title": "Public Speaking for Beginners \u2013 Free Full Course | Speak with Confidence",
+        "url": "https://www.youtube.com/watch?v=MXKkXXYUxBc"
+      }
+    ],
+    "practice": [
+      {
+        "title": "How 4 Public Speaking Exercises Transformed My Articulation (At Home!)",
+        "url": "https://www.youtube.com/watch?v=TjIjPLuUQjI"
+      }
+    ]
+  },
+  "asdkjfhaskjdfh": {
+    "learn": [],
+    "practice": [
+      {
+        "title": "Slim and toned arms \u2705\ud83d\udcaf #armfatloss #armfat #armpitfat #workout #slimarms #exercise #yoga #shorts",
+        "url": "https://www.youtube.com/watch?v=f1NaJLnObWs"
+      }
+    ]
+  },
+  "node.js": {
+    "learn": [
+      {
+        "title": "Node Js Tutorial in Hindi \ud83d\udd25\ud83d\udd25",
+        "url": "https://www.youtube.com/watch?v=BLl32FvcdVM"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Node.js Tutorial for Beginners: Learn Node in 1 Hour",
+        "url": "https://www.youtube.com/watch?v=TlB_eWDSMt4"
+      }
+    ]
+  },
+  "fastapi": {
+    "learn": [
+      {
+        "title": "FastAPI for Beginners - Python Web Framework",
+        "url": "https://www.youtube.com/watch?v=Lu8lXXlstvM"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Learn Fast API With This ONE Project",
+        "url": "https://www.youtube.com/watch?v=SR5NYCdzKkc"
+      }
+    ]
+  },
+  "postgresql": {
+    "learn": [
+      {
+        "title": "PostgreSQL Tutorial | What Is PostgreSQL? | PostgreSQL Tutorial For Beginners | Simplilearn",
+        "url": "https://www.youtube.com/watch?v=evJuky1ZtD8"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Learn PostgreSQL fast! | PostgreSQL for beginners",
+        "url": "https://www.youtube.com/watch?v=9ZixI8Xy0T0"
+      }
+    ]
+  },
+  "typescript": {
+    "learn": [
+      {
+        "title": "TypeScript Tutorial for Beginners",
+        "url": "https://www.youtube.com/watch?v=d56mG7DezGs"
+      }
+    ],
+    "practice": [
+      {
+        "title": "TypeScript Tutorial for Beginners",
+        "url": "https://www.youtube.com/watch?v=d56mG7DezGs"
+      }
+    ]
+  },
+  "docker": {
+    "learn": [
+      {
+        "title": "Docker Tutorial for Beginners [FULL COURSE in 3 Hours]",
+        "url": "https://www.youtube.com/watch?v=3c-iBn73dDE"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Top 8 Docker Best Practices for using Docker in Production",
+        "url": "https://www.youtube.com/watch?v=8vXoMqWgbQQ"
+      }
+    ]
+  },
+  "ci/cd": {
+    "learn": [
+      {
+        "title": "What is CI/CD Pipeline? | Simply Explained by Shradha Ma&#39;am",
+        "url": "https://www.youtube.com/watch?v=gLptmcuCx6Q"
+      }
+    ],
+    "practice": [
+      {
+        "title": "CI/CD Pipeline Explained | DevOps Basics",
+        "url": "https://www.youtube.com/watch?v=haP4iD8g4ss"
+      }
+    ]
+  },
+  "mongodb": {
+    "learn": [
+      {
+        "title": "MongoDB Crash Course 2026 (with Handbook)",
+        "url": "https://www.youtube.com/watch?v=M1dKYQ7GsTg"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Learn MongoDB in 1 hour \ud83c\udf43",
+        "url": "https://www.youtube.com/watch?v=c2M-rlkkT5o"
+      }
+    ]
+  },
+  "nosql": {
+    "learn": [
+      {
+        "title": "NoSQL Tutorial For Beginners | A Complete Guide To NoSQL Databases | Simplilearn",
+        "url": "https://www.youtube.com/watch?v=aUPVpIYiLCc"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Applied NoSQL with MongoDB and Python - Michael Kennedy",
+        "url": "https://www.youtube.com/watch?v=ckK6RQiUj9I"
+      }
+    ]
+  },
+  "jest": {
+    "learn": [
+      {
+        "title": "JavaScript Testing with Jest \u2013 Crash Course",
+        "url": "https://www.youtube.com/watch?v=IPiUDhwnZxA"
+      }
+    ],
+    "practice": [
+      {
+        "title": "#Bigger Chest In #15 Days At Home | GYM Workout | #Fitness #Shorts",
+        "url": "https://www.youtube.com/watch?v=KWzPokgHiVI"
+      }
+    ]
+  },
+  "pytest": {
+    "learn": [
+      {
+        "title": "Please Learn How To Write Tests in Python\u2026 \u2022 Pytest Tutorial",
+        "url": "https://www.youtube.com/watch?v=EgpLj86ZHFQ"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Pytest Tutorial: A Hands-on Guide To Unit Testing",
+        "url": "https://www.youtube.com/watch?v=aMOOnqOyO4Q"
+      }
+    ]
+  },
+  "tableau": {
+    "learn": [
+      {
+        "title": "Learn Tableau in 15 minutes and create your first report (FREE Sample Files)",
+        "url": "https://www.youtube.com/watch?v=tNLp_JVipoQ"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Learn Tableau in 15 minutes and create your first report (FREE Sample Files)",
+        "url": "https://www.youtube.com/watch?v=tNLp_JVipoQ"
+      }
+    ]
+  },
+  "r": {
+    "learn": [
+      {
+        "title": "R programming for ABSOLUTE beginners",
+        "url": "https://www.youtube.com/watch?v=FY8BISK5DpM"
+      }
+    ],
+    "practice": [
+      {
+        "title": "R Programming Tutorial - Learn the Basics of Statistical Computing",
+        "url": "https://www.youtube.com/watch?v=_V8eKsto3Ug"
+      }
+    ]
+  },
+  "a/b testing": {
+    "learn": [
+      {
+        "title": "Simple explanation of A/B Testing",
+        "url": "https://www.youtube.com/watch?v=eiIhTbFP0ls"
+      }
+    ],
+    "practice": [
+      {
+        "title": "\ud83e\udde0Cerebellar (Coordination) Testing #shorts",
+        "url": "https://www.youtube.com/watch?v=cgdaKLCKtsg"
+      }
+    ]
+  },
+  "statistical analysis": {
+    "learn": [
+      {
+        "title": "What is Statistics? A Beginner&#39;s Guide to Statistics (Data Analytics)!",
+        "url": "https://www.youtube.com/watch?v=Gi4GxE4obAc"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Hands-on Preview and Exercise: Statistics, Tanu Soni",
+        "url": "https://www.youtube.com/watch?v=2c-yqyhdXzI"
+      }
+    ]
+  },
+  "cloud data warehouse": {
+    "learn": [
+      {
+        "title": "Data Warehouse vs Data Lake vs Data Lakehouse | ETL, OLAP vs OLTP",
+        "url": "https://www.youtube.com/watch?v=yRerKDM1h74"
+      }
+    ],
+    "practice": [
+      {
+        "title": "\u2744\ufe0f SNOWFLAKEMASTER CLOUD DATA WAREHOUSING WITH REAL-TIME PRACTICAL LIVE",
+        "url": "https://www.youtube.com/watch?v=kpJLkQ-sUiw"
+      }
+    ]
+  }
+}

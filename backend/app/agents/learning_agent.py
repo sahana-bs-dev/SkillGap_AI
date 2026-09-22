@@ -42,10 +42,12 @@ gap below, build a Learn -> Practice -> Build plan.
 
 CRITICAL RULE — NO INVENTED LINKS:
 For "learn_resources" and "practice_resources", you may ONLY select from
-that skill's "Candidate resources" list, copied exactly (format:
-"Title — URL"). If a skill's candidate list is empty ({{}}), return an
-empty list for that skill's learn_resources/practice_resources — do not
-invent a resource or URL to fill the gap.
+that skill's "Candidate resources" list. Each candidate is already a
+{{"title": ..., "url": ...}} object — copy the title and url fields
+exactly, do not alter, merge, or reformat them. If a skill's candidate
+list is empty ({{}}), return an empty list for that skill's
+learn_resources/practice_resources — do not invent a resource or URL to
+fill the gap.
 
 For "build_project": suggest ONE project realistically scoped for a
 college student to complete in 1-3 weeks alongside coursework — small
@@ -60,8 +62,8 @@ Return ONLY a JSON object with this exact shape:
   "plan": [
     {{
       "skill": "...",
-      "learn_resources": ["Title — URL", ...],
-      "practice_resources": ["Title — URL", ...],
+      "learn_resources": [{{"title": "...", "url": "..."}}, ...],
+      "practice_resources": [{{"title": "...", "url": "..."}}, ...],
       "build_project": "..."
     }}
   ]

@@ -9,6 +9,7 @@ import { useAuth } from "./context/AuthContext";
 import ATSReport from "./pages/ATSReport/ATSReport";
 import MatchReport from "./pages/MatchReport/MatchReport";
 import SkillGapPlan from "./pages/SkillGapPlan/SkillGapPlan";
+import ResumeRewrite from "./pages/ResumeRewrite/ResumeRewrite";
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -63,6 +64,17 @@ export default function App() {
   element={
     <ProtectedRoute>
       <SkillGapPlan />
+    </ProtectedRoute>
+  }
+/>
+
+
+
+<Route
+  path="/resume-rewrite"
+  element={
+    <ProtectedRoute>
+      <ResumeRewrite />
     </ProtectedRoute>
   }
 />

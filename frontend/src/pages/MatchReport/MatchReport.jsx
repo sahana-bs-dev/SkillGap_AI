@@ -71,7 +71,7 @@ export default function MatchReport() {
             <h1>Match report</h1>
             <p>How your resume lines up against this job description</p>
           </div>
-          <Link to="/skill-gap" state={{ matchingOutput: report }} className="btn secondary">
+          <Link to="/skill-gap" state={{ matchingOutput: report, resumeText }} className="btn secondary">
   View skill gap &amp; plan
 </Link>
         </div>
@@ -155,7 +155,7 @@ export default function MatchReport() {
             <div className="callout" style={{ marginTop: "1.2rem" }}>
               <p>
                 Want a plan to close these gaps?{" "}
-                <Link to="/skill-gap" state={{ matchingOutput: report }}>View the skill gap &amp; learning plan</Link>
+                <Link to="/skill-gap" state={{ matchingOutput: report, resumeText }}>View the skill gap &amp; learning plan</Link>
               </p>
             </div>
           </>
