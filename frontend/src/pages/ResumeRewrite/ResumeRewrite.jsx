@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import { jsPDF } from "jspdf";
 import AgentStatusIndicator from "../../components/AgentStatus/AgentStatusIndicator";
@@ -22,6 +22,7 @@ function saveBlob(blob, fileName) {
 
 export default function ResumeRewrite() {
   const { state } = useLocation();
+  const navigate = useNavigate();
   const resumeText = state?.resumeText;
   const matchingOutput = state?.matchingOutput;
   const gaps = state?.gaps;
@@ -101,6 +102,11 @@ export default function ResumeRewrite() {
     const doc = new Document({ sections: [{ children: paragraphs }] });
     const blob = await Packer.toBlob(doc);
     saveBlob(blob, "rewritten-resume.docx");
+  }
+
+  // Phase 8: hand the same inputs to the improvement loop page
+  function handleRunLoop() {
+    navigate("/improvement-loop", { state: { resumeText, matchingOutput, gaps } });
   }
 
   const agents = [
@@ -192,6 +198,9 @@ export default function ResumeRewrite() {
                 </button>
                 <button className="btn secondary" onClick={handleDownloadDocx}>
                   Download Word
+                </button>
+                <button className="btn secondary" onClick={handleRunLoop}>
+                  Run improvement loop
                 </button>
               </div>
             </div>

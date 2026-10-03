@@ -10,6 +10,7 @@ import ATSReport from "./pages/ATSReport/ATSReport";
 import MatchReport from "./pages/MatchReport/MatchReport";
 import SkillGapPlan from "./pages/SkillGapPlan/SkillGapPlan";
 import ResumeRewrite from "./pages/ResumeRewrite/ResumeRewrite";
+import ImprovementLoop from "./pages/ImprovementLoop/ImprovementLoop";
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -43,41 +44,49 @@ export default function App() {
       />
 
       <Route
-  path="/ats-report"
-  element={
-    <ProtectedRoute>
-      <ATSReport />
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/match-report"
-  element={
-    <ProtectedRoute>
-      <MatchReport />
-    </ProtectedRoute>
-  }
-/>
+        path="/ats-report"
+        element={
+          <ProtectedRoute>
+            <ATSReport />
+          </ProtectedRoute>
+        }
+      />
 
-<Route
-  path="/skill-gap"
-  element={
-    <ProtectedRoute>
-      <SkillGapPlan />
-    </ProtectedRoute>
-  }
-/>
+      <Route
+        path="/match-report"
+        element={
+          <ProtectedRoute>
+            <MatchReport />
+          </ProtectedRoute>
+        }
+      />
 
+      <Route
+        path="/skill-gap"
+        element={
+          <ProtectedRoute>
+            <SkillGapPlan />
+          </ProtectedRoute>
+        }
+      />
 
+      <Route
+        path="/resume-rewrite"
+        element={
+          <ProtectedRoute>
+            <ResumeRewrite />
+          </ProtectedRoute>
+        }
+      />
 
-<Route
-  path="/resume-rewrite"
-  element={
-    <ProtectedRoute>
-      <ResumeRewrite />
-    </ProtectedRoute>
-  }
-/>
+      <Route
+        path="/improvement-loop"
+        element={
+          <ProtectedRoute>
+            <ImprovementLoop />
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="/" element={<RootRedirect />} />
       <Route path="*" element={<RootRedirect />} />

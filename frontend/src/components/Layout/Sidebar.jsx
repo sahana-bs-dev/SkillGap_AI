@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { to: "/match-report", label: "Match report", step: "02" },
   { to: "/skill-gap", label: "Skill gap", step: "03" },
   { to: "/resume-rewrite", label: "Resume rewrite", step: "05" },
+  { to: "/improvement-loop", label: "Improvement loop", step: "06" },
   { to: "/history", label: "History" },
 ];
 

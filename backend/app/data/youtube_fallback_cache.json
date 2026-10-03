@@ -476,5 +476,21 @@
   "monitoring": {
     "learn": [],
     "practice": []
+  },
+  "software debugging": {
+    "learn": [],
+    "practice": []
+  },
+  "agile/scrum": {
+    "learn": [],
+    "practice": []
+  },
+  "collaboration": {
+    "learn": [],
+    "practice": []
+  },
+  "api design": {
+    "learn": [],
+    "practice": []
   }
 }
