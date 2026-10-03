@@ -332,5 +332,149 @@
         "url": "https://www.youtube.com/watch?v=kpJLkQ-sUiw"
       }
     ]
+  },
+  "javascript": {
+    "learn": [],
+    "practice": []
+  },
+  "html": {
+    "learn": [],
+    "practice": []
+  },
+  "css": {
+    "learn": [],
+    "practice": []
+  },
+  "object-oriented programming": {
+    "learn": [],
+    "practice": []
+  },
+  "data structures": {
+    "learn": [],
+    "practice": []
+  },
+  "algorithms": {
+    "learn": [],
+    "practice": []
+  },
+  "aws": {
+    "learn": [],
+    "practice": []
+  },
+  "redis": {
+    "learn": [],
+    "practice": []
+  },
+  "cloud deployment": {
+    "learn": [],
+    "practice": []
+  },
+  "api integration": {
+    "learn": [],
+    "practice": []
+  },
+  "performance optimization": {
+    "learn": [],
+    "practice": []
+  },
+  "unit testing": {
+    "learn": [],
+    "practice": []
+  },
+  "integration testing": {
+    "learn": [],
+    "practice": []
+  },
+  "code reviews": {
+    "learn": [],
+    "practice": []
+  },
+  "agile development": {
+    "learn": [],
+    "practice": []
+  },
+  "sql": {
+    "learn": [],
+    "practice": []
+  },
+  "github": {
+    "learn": [],
+    "practice": []
+  },
+  "javascript/typescript": {
+    "learn": [],
+    "practice": []
+  },
+  "authentication": {
+    "learn": [],
+    "practice": []
+  },
+  "api security": {
+    "learn": [],
+    "practice": []
+  },
+  "express": {
+    "learn": [],
+    "practice": []
+  },
+  "rest api": {
+    "learn": [],
+    "practice": []
+  },
+  "problem solving": {
+    "learn": [],
+    "practice": []
+  },
+  "communication": {
+    "learn": [],
+    "practice": []
+  },
+  "vercel": {
+    "learn": [],
+    "practice": []
+  },
+  "jwt": {
+    "learn": [],
+    "practice": []
+  },
+  "oauth": {
+    "learn": [],
+    "practice": []
+  },
+  "agile": {
+    "learn": [],
+    "practice": []
+  },
+  "express.js": {
+    "learn": [],
+    "practice": []
+  },
+  "responsive web design": {
+    "learn": [],
+    "practice": []
+  },
+  "problem-solving": {
+    "learn": [],
+    "practice": []
+  },
+  "cloud platforms": {
+    "learn": [],
+    "practice": []
+  },
+  "code review": {
+    "learn": [],
+    "practice": []
+  },
+  "continuous integration": {
+    "learn": [],
+    "practice": []
+  },
+  "continuous deployment": {
+    "learn": [],
+    "practice": []
+  },
+  "monitoring": {
+    "learn": [],
+    "practice": []
   }
 }

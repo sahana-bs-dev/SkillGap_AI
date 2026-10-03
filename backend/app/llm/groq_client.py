@@ -35,6 +35,10 @@ class GroqClient:
     enforcement. Parses the result with json.loads and raises a clear
     ValueError with a truncated preview of the raw output if Groq ever
     returns something that isn't valid JSON.
+
+    gpt-oss models are reasoning models: their thinking tokens count against
+    max_completion_tokens. A high limit plus low reasoning effort keeps them
+    from running out of budget before the JSON is written.
     """
 
     _JSON_ONLY_SYSTEM_PROMPT = (
@@ -42,27 +46,41 @@ class GroqClient:
         "no commentary, no explanation before or after — just the JSON object."
     )
 
-    def __init__(self, temperature: float = 0.2):
+    def __init__(
+        self,
+        temperature: float = 0.2,
+        max_completion_tokens: int = 8000,
+        reasoning_effort: str = "low",
+    ):
         self.temperature = temperature
+        self.max_completion_tokens = max_completion_tokens
+        self.reasoning_effort = reasoning_effort
 
     def complete_json(self, model: str, prompt: str) -> dict:
         client = _get_client()
 
-        response = client.chat.completions.create(
-            model=model,
-            temperature=self.temperature,
-            response_format={"type": "json_object"},
-            messages=[
+        kwargs = {
+            "model": model,
+            "temperature": self.temperature,
+            "max_completion_tokens": self.max_completion_tokens,
+            "response_format": {"type": "json_object"},
+            "messages": [
                 {"role": "system", "content": self._JSON_ONLY_SYSTEM_PROMPT},
                 {"role": "user", "content": prompt},
             ],
-        )
+        }
+        if "gpt-oss" in model:
+            kwargs["reasoning_effort"] = self.reasoning_effort
+
+        response = client.chat.completions.create(**kwargs)
 
         raw = response.choices[0].message.content
+        if not raw:
+            raise ValueError("Groq returned an empty response")
         try:
             return json.loads(raw)
         except json.JSONDecodeError as e:
-            preview = raw[:300] if raw else raw
+            preview = raw[:300]
             raise ValueError(
                 f"Groq did not return valid JSON: {e}\nRaw output preview:\n{preview}"
             )

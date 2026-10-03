@@ -7,8 +7,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.parsing import routes as parsing_routes
 from app.auth import routes as auth_routes
 from app.routes import analyze
-
+from app.routes.resume import router as resume_router
 app = FastAPI(title="SkillGap AI API")
+
+app.include_router(resume_router)
+
 app.include_router(analyze.router)
 
 # Allow the React frontend (different port) to call this API.

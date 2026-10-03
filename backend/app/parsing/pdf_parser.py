@@ -22,7 +22,7 @@ def _extract_with_pdfplumber(file_bytes: bytes) -> str:
     try:
         with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
             for page in pdf.pages:
-                chunks.append(page.extract_text() or "")
+                chunks.append(page.extract_text(x_tolerance=1) or "")
     except Exception:
         return ""
     return _clean("\n".join(chunks))

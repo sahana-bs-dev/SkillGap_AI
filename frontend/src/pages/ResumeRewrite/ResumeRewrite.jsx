@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
+import { Document, Packer, Paragraph, TextRun } from "docx";
+import { jsPDF } from "jspdf";
 import AgentStatusIndicator from "../../components/AgentStatus/AgentStatusIndicator";
 import { runResumeRewrite } from "../../api/rewriteApi";
 import "../MatchReport/MatchReport.css"; // reusing the same panel/row-list styles
@@ -8,6 +10,15 @@ import "../../components/Layout/Sidebar.css";
 
 // Route: requires resumeText + matchingOutput + gaps from the Skill Gap page.
 //   navigate("/resume-rewrite", { state: { resumeText, matchingOutput, gaps } })
+
+function saveBlob(blob, fileName) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function ResumeRewrite() {
   const { state } = useLocation();
@@ -20,6 +31,9 @@ export default function ResumeRewrite() {
   const [result, setResult] = useState(null); // { rewritten_text, diff_summary, warnings }
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Stops React dev mode from sending the request twice
+  const hasStarted = useRef(false);
+
   useEffect(() => {
     if (!resumeText || !matchingOutput || !gaps) {
       setStatus("error");
@@ -29,19 +43,18 @@ export default function ResumeRewrite() {
       return;
     }
 
-    let cancelled = false;
+    if (hasStarted.current) return;
+    hasStarted.current = true;
 
     async function runRewrite() {
       setStatus("loading");
       setRewriteStage("working");
       try {
         const data = await runResumeRewrite(resumeText, matchingOutput, gaps);
-        if (cancelled) return;
         setResult(data);
         setRewriteStage("done");
         setStatus("done");
       } catch (err) {
-        if (cancelled) return;
         setErrorMsg(err.message);
         setStatus("error");
         setRewriteStage("error");
@@ -49,10 +62,46 @@ export default function ResumeRewrite() {
     }
 
     runRewrite();
-    return () => {
-      cancelled = true;
-    };
   }, [resumeText, matchingOutput, gaps]);
+
+  function handleDownloadPdf() {
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    const margin = 50;
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const maxWidth = doc.internal.pageSize.getWidth() - margin * 2;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+
+    const lines = doc.splitTextToSize(result.rewritten_text, maxWidth);
+    let y = margin;
+    for (const line of lines) {
+      if (y > pageHeight - margin) {
+        doc.addPage();
+        y = margin;
+      }
+      doc.text(line, margin, y);
+      y += 15;
+    }
+
+    doc.save("rewritten-resume.pdf");
+  }
+
+  async function handleDownloadDocx() {
+    const lines = result.rewritten_text.split("\n");
+    const paragraphs = [];
+    for (const line of lines) {
+      paragraphs.push(
+        new Paragraph({
+          children: [new TextRun({ text: line, font: "Calibri", size: 22 })],
+        })
+      );
+    }
+
+    const doc = new Document({ sections: [{ children: paragraphs }] });
+    const blob = await Packer.toBlob(doc);
+    saveBlob(blob, "rewritten-resume.docx");
+  }
 
   const agents = [
     { name: "Supervisor Agent", status: "done", label: "routed" },
@@ -137,6 +186,14 @@ export default function ResumeRewrite() {
               >
                 {result.rewritten_text}
               </pre>
+              <div style={{ display: "flex", gap: "0.8rem", marginTop: "1rem" }}>
+                <button className="btn" onClick={handleDownloadPdf}>
+                  Download PDF
+                </button>
+                <button className="btn secondary" onClick={handleDownloadDocx}>
+                  Download Word
+                </button>
+              </div>
             </div>
           </>
         )}
