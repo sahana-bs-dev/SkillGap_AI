@@ -96,7 +96,13 @@ function ScoreChart({ scores, iterations }) {
     path += (i === 0 ? "M" : "L") + x + " " + y + " ";
     dots.push(
       <g key={"dot-" + i}>
-        <circle cx={x} cy={y} r="5" className="loop-dot" />
+        <circle
+          cx={x}
+          cy={y}
+          r="5"
+          className="loop-dot"
+          style={iterations[i].accepted === false ? { stroke: "var(--gap)" } : undefined}
+        />
         <text x={x} y={y - 12} className="loop-point-value">
           {scores[i]}
         </text>
@@ -104,7 +110,7 @@ function ScoreChart({ scores, iterations }) {
     );
     labels.push(
       <text key={"label-" + i} x={x} y={height - 14} className="loop-axis loop-axis-x">
-        {"Round " + iterations[i].iteration}
+        {"Round " + iterations[i].iteration + (iterations[i].accepted === false ? " \u2715" : "")}
       </text>
     );
   }
@@ -142,12 +148,24 @@ function IterationBreakdown({ iterations, scores }) {
   const rows = [];
   for (let i = 0; i < iterations.length; i++) {
     const gaps = iterations[i].remaining_gaps || [];
+    const warnings = iterations[i].warnings || [];
+    const warningLines = [];
+    for (let k = 0; k < warnings.length; k++) {
+      warningLines.push(
+        <p className="desc" key={"warn-" + k}>
+          {warnings[k]}
+        </p>
+      );
+    }
     const delta = i === 0 ? null : Math.round((scores[i] - scores[i - 1]) * 10) / 10;
 
     rows.push(
       <details className="row-item loop-round" key={"round-" + i}>
         <summary className="loop-round-head">
-          <span className="loop-round-name">{"Round " + iterations[i].iteration}</span>
+          <span className="loop-round-name">
+            {"Round " + iterations[i].iteration}
+            {iterations[i].accepted === false ? <span className="tag gap" style={{ marginLeft: "0.5rem" }}>discarded</span> : null}
+          </span>
           <span className="loop-round-score">{scores[i]}</span>
           {delta === null ? (
             <span className="loop-flat">Starting score</span>
@@ -164,6 +182,14 @@ function IterationBreakdown({ iterations, scores }) {
           ) : (
             <GapChips gaps={gaps} />
           )}
+          {warnings.length > 0 ? (
+            <div style={{ marginTop: "0.8rem" }}>
+              <p className="desc" style={{ color: "var(--gap)", marginBottom: "0.3rem" }}>
+                Content not found in your original resume:
+              </p>
+              {warningLines}
+            </div>
+          ) : null}
         </div>
       </details>
     );
@@ -221,11 +247,18 @@ export default function ImprovementLoop() {
   let net = 0;
   let dropped = false;
   if (hasResult) {
+    let bestIndex = scores.length - 1;
+    for (let i = 0; i < iterations.length; i++) {
+      if (iterations[i].iteration === result.best_iteration) bestIndex = i;
+    }
     first = scores[0];
-    last = scores[scores.length - 1];
+    last = scores[bestIndex];
     net = Math.round((last - first) * 10) / 10;
     for (let i = 1; i < scores.length; i++) {
       if (scores[i] < scores[i - 1]) dropped = true;
+    }
+    for (let i = 0; i < iterations.length; i++) {
+      if (iterations[i].accepted === false) dropped = true;
     }
   }
 
@@ -254,7 +287,7 @@ export default function ImprovementLoop() {
             <p>Each round rewrites the resume, then scores it against the job description again</p>
           </div>
           <div style={{ display: "flex", gap: "0.8rem" }}>
-            <Link to="/resume-rewrite" state={state} className="btn secondary">
+            <Link to="/resume-rewrite" state={state} className="btn secondary" style={{ textDecoration: "none" }}>
               Back to rewrite
             </Link>
             {status !== "loading" && resumeText ? (
@@ -268,7 +301,7 @@ export default function ImprovementLoop() {
         {status === "loading" && (
           <div className="panel">
             <p>
-              Running the loop. Every round calls the model twice, so this can take a minute or two.
+              Running the loop. Every round rewrites the resume, re-scores it and re-checks the gaps, so this can take a few minutes. Keep this tab open.
             </p>
           </div>
         )}
@@ -281,7 +314,7 @@ export default function ImprovementLoop() {
 
         {status === "done" && iterations.length === 0 && (
           <div className="panel">
-            <p>The loop finished but returned no rounds. Check the response shape in loopApi.js.</p>
+            <p>The loop finished but returned no rounds. Try running it again.</p>
           </div>
         )}
 
@@ -289,7 +322,7 @@ export default function ImprovementLoop() {
           <>
             <div className="panel loop-summary" style={{ marginTop: "1.2rem" }}>
               <div className="loop-stat">
-                <span className="loop-stat-label">Score</span>
+                <span className="loop-stat-label">Score (best round)</span>
                 <span className="loop-stat-value">{first + " to " + last}</span>
               </div>
               <div className="loop-stat">
@@ -298,7 +331,7 @@ export default function ImprovementLoop() {
               </div>
               <div className="loop-stat">
                 <span className="loop-stat-label">Rounds</span>
-                <span className="loop-stat-value">{iterations.length}</span>
+                <span className="loop-stat-value">{Math.max(iterations.length - 1, 0)}</span>
               </div>
               <div className="loop-stat">
                 <span className="loop-stat-label">{result.finished ? "Stopped because" : "Status"}</span>
@@ -310,9 +343,11 @@ export default function ImprovementLoop() {
 
             {dropped && (
               <div className="panel" style={{ marginTop: "1.2rem", borderColor: "var(--gap)" }}>
-                <h3>Score dropped in at least one round</h3>
+                <h3>A round was discarded</h3>
                 <p className="desc">
-                  Check whether a rewrite removed evidence the matcher was counting before trusting the final text.
+                  {"A round scored lower or added content that is not in your original resume, so it was thrown away. The final rewrite is from " +
+                    (result.best_iteration > 0 ? "round " + result.best_iteration : "your original resume (no round improved it)") +
+                    "."}
                 </p>
               </div>
             )}
@@ -327,6 +362,15 @@ export default function ImprovementLoop() {
               <IterationBreakdown iterations={iterations} scores={scores} />
             </div>
 
+            {result.final_version_id ? (
+              <div className="callout" style={{ marginTop: "1.2rem" }}>
+                <p>
+                  {"Saved as version " + result.final_version_no + ". "}
+                  <Link to="/resume-rewrite">Open it in Resume rewrite</Link> to see the highlighted changes and download it.
+                </p>
+              </div>
+            ) : null}
+
             <div className="panel" style={{ marginTop: "1.2rem" }}>
               <h3>Before and after</h3>
               <div className="loop-compare">
@@ -337,12 +381,29 @@ export default function ImprovementLoop() {
                   </pre>
                 </div>
                 <div className="loop-pane loop-pane-after">
-                  <h4 className="loop-pane-title">Final rewrite</h4>
+                  <h4 className="loop-pane-title">
+                    {result.best_iteration > 0 ? "Final rewrite (round " + result.best_iteration + ")" : "Final result (original kept)"}
+                  </h4>
                   <pre className="loop-pane-text">
                     {getFinalText(result, iterations) ||
                       "The loop response did not include the final text. Ask the backend to return final_resume, or load it from the versions route."}
                   </pre>
                 </div>
+              </div>
+            </div>
+
+            <div className="panel" style={{ marginTop: "1.2rem" }}>
+              <h3>What next?</h3>
+              <p className="desc">
+                Look back at your earlier analyses, loop runs and resume versions, and compare any two of them.
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.8rem", marginTop: "0.8rem" }}>
+                <Link to="/history" className="btn" style={{ textDecoration: "none" }}>
+                  View history
+                </Link>
+                <Link to="/resume-rewrite" state={state} className="btn secondary" style={{ textDecoration: "none" }}>
+                  Back to rewrite
+                </Link>
               </div>
             </div>
           </>

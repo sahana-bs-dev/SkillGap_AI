@@ -11,6 +11,8 @@ import MatchReport from "./pages/MatchReport/MatchReport";
 import SkillGapPlan from "./pages/SkillGapPlan/SkillGapPlan";
 import ResumeRewrite from "./pages/ResumeRewrite/ResumeRewrite";
 import ImprovementLoop from "./pages/ImprovementLoop/ImprovementLoop";
+import History from "./pages/History/History";
+import Compare from "./pages/Compare/Compare";
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -84,6 +86,24 @@ export default function App() {
         element={
           <ProtectedRoute>
             <ImprovementLoop />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/history"
+        element={
+          <ProtectedRoute>
+            <History />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/compare"
+        element={
+          <ProtectedRoute>
+            <Compare />
           </ProtectedRoute>
         }
       />

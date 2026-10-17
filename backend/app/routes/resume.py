@@ -100,6 +100,7 @@ def list_versions(current_user: dict = Depends(get_current_user)):
 
     versions = []
     for doc in cursor:
+        changes = doc.get("diff_summary") or []
         versions.append(
             {
                 "id": str(doc["_id"]),
@@ -108,6 +109,10 @@ def list_versions(current_user: dict = Depends(get_current_user)):
                 "created_at": doc["created_at"].isoformat(),
                 "warning_count": len(doc.get("warnings", [])),
                 "preview": doc["rewritten_text"][:150],
+                # added so the history list can say what each version actually is
+                "summary": changes[0] if changes else "",
+                "change_count": len(changes),
+                "source": doc.get("source", "rewrite"),
             }
         )
     return versions

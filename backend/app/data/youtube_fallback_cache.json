@@ -492,5 +492,131 @@
   "api design": {
     "learn": [],
     "practice": []
+  },
+  "backend development": {
+    "learn": [
+      {
+        "title": "Backend web development - a complete overview",
+        "url": "https://www.youtube.com/watch?v=XBu54nfzxAQ"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Junior vs senior python developer \ud83d\udc0d | #python #coding #programming #shorts  @Codingknowledge-yt",
+        "url": "https://www.youtube.com/watch?v=Mf9GCn_LsUI"
+      }
+    ]
+  },
+  "full-stack development": {
+    "learn": [
+      {
+        "title": "Fastest way to become a full-stack developer! Brototype Malayalam",
+        "url": "https://www.youtube.com/watch?v=GS1Bj8THhjU"
+      }
+    ],
+    "practice": [
+      {
+        "title": "5 WEBSITES to practice Frontend Development\ud83d\udd25",
+        "url": "https://www.youtube.com/watch?v=rf-SvUadpKA"
+      }
+    ]
+  },
+  "flask": {
+    "learn": [
+      {
+        "title": "Flask Tutorial for Beginners (2026) | Build Your First Python Web App | Part 1",
+        "url": "https://www.youtube.com/watch?v=lgpSuLus9Mo"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Flask Exercises for Beginners: Hands-On Coding Challenges",
+        "url": "https://www.youtube.com/watch?v=N0OfrJwWNAE"
+      }
+    ]
+  },
+  "software testing": {
+    "learn": [
+      {
+        "title": "Complete Software Testing Malayalam Tutorial | First Time on YouTube!",
+        "url": "https://www.youtube.com/watch?v=M5O3awu0Fzk"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Manual Testing Tutorial for Beginners | Part 1: The Ultimate Guide #manualtesting",
+        "url": "https://www.youtube.com/watch?v=yoDhjyZ_tV0"
+      }
+    ]
+  },
+  "hackathons": {
+    "learn": [
+      {
+        "title": "Hackathons, explained for beginners",
+        "url": "https://www.youtube.com/watch?v=YyJRXPY0Vyg"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Cyberathon 2026: How to perform into Hackathon",
+        "url": "https://www.youtube.com/watch?v=XyWlAgD7-ZM"
+      }
+    ]
+  },
+  "open source contributions": {
+    "learn": [
+      {
+        "title": "Contributing to Open Source will change your Life | How to Start? | Ali Solanki",
+        "url": "https://www.youtube.com/watch?v=v2X51AVgl3o"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Contributing to Open Source Can Change Your Life - Here\u2019s How to Do It",
+        "url": "https://www.youtube.com/watch?v=CML6vfKjQss"
+      }
+    ]
+  },
+  "data structures and algorithms": {
+    "learn": [
+      {
+        "title": "DSA Complete Roadmap 2026 in Telugu \ud83d\udd25 | Step-by-Step Guide for Placements &amp; Coding Interviews",
+        "url": "https://www.youtube.com/watch?v=wjFgd8JJ8NM"
+      }
+    ],
+    "practice": [
+      {
+        "title": "\ud83d\udd34 LIVE: LeetCode Data Structures &amp; Algorithms Practice ( No Talking...)",
+        "url": "https://www.youtube.com/watch?v=MLFFYcyd5b0"
+      }
+    ]
+  },
+  "relational databases": {
+    "learn": [
+      {
+        "title": "What Is a Relational Database? | Beginner\u2019s Guide",
+        "url": "https://www.youtube.com/watch?v=zDNAOM6Mx4E"
+      }
+    ],
+    "practice": [
+      {
+        "title": "[FOR 2026] Practical SQL Hands-On Masterclass with MySQL | Day-by-Day Guide",
+        "url": "https://www.youtube.com/watch?v=Zk23ruZgs3w"
+      }
+    ]
+  },
+  "agile software development practices": {
+    "learn": [
+      {
+        "title": "What Is Agile Methodology? | Introduction to Agile Methodology in Six Minutes | Simplilearn",
+        "url": "https://www.youtube.com/watch?v=8eVXTyIZ1Hs"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Agile Scrum Full Course In 4 Hours | Agile Scrum Master Training | Agile Training Video |Simplilearn",
+        "url": "https://www.youtube.com/watch?v=VFQtSqChlsk"
+      }
+    ]
   }
 }

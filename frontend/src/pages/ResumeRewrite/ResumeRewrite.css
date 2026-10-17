@@ -1,0 +1,204 @@
+/* Resume rewrite page.
+   Everything is scoped under .rw-page, so it cannot change any other page.
+   It also carries the few shared styles it needs (tags, rows, secondary buttons,
+   agent chips), because src/styles/global.css is not imported by main.jsx. */
+
+/* ---------- shared bits, scoped to this page ---------- */
+
+.rw-page .btn { text-decoration: none; }
+.rw-page .btn.secondary { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+.rw-page .btn.secondary:hover { background: var(--panel-alt); }
+.rw-page .btn.ghost { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+.rw-page .btn.ghost:hover { background: var(--panel-alt); color: var(--ink); }
+.rw-page .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+.rw-page .tag {
+  display: inline-flex; align-items: center; gap: .4em;
+  font-family: var(--mono); font-size: .74rem; padding: .3em .65em;
+  border-radius: 3px; border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+}
+.rw-page .tag.match { background: var(--match-wash); border-color: #c3d9bc; color: var(--match); }
+.rw-page .tag.gap { background: var(--gap-wash); border-color: #e4c3ba; color: var(--gap); }
+.rw-page .tag.active { background: var(--gold-wash); border-color: #ecd07a; color: var(--gold-deep); }
+
+.rw-page .desc { color: var(--ink-soft); font-size: .92rem; margin: 0 0 .6rem; max-width: 70ch; }
+.rw-page .row-list { display: flex; flex-direction: column; }
+.rw-page .row-item {
+  display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start;
+  padding: .75rem 0; border-bottom: 1px solid var(--line-soft);
+}
+.rw-page .row-item:last-child { border-bottom: none; }
+.rw-page .row-item .desc { margin: 0; }
+
+.rw-page .agent-strip { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.4rem; }
+.rw-page .agent-chip {
+  display: flex; align-items: center; gap: .5em; border: 1px solid var(--line);
+  background: var(--paper); border-radius: var(--radius); padding: .5em .8em; font-size: .82rem;
+}
+.rw-page .agent-chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--line); flex: none; }
+.rw-page .agent-chip.done .dot { background: var(--match); }
+.rw-page .agent-chip.working .dot { background: var(--gold); box-shadow: 0 0 0 3px var(--gold-wash); }
+.rw-page .agent-chip.idle { color: var(--ink-soft); }
+
+.rw-page footer.note {
+  margin-top: 3rem; padding-top: 1.2rem; border-top: 1px solid var(--line);
+  font-size: .78rem; color: var(--ink-soft);
+}
+
+.rw-page .rw-small { font-size: .84rem; margin-top: .6rem; }
+
+/* ---------- top-level tabs: Review & download | Saved versions ---------- */
+
+.rw-pagetabs {
+  display: flex;
+  gap: .3rem;
+  margin: 0 0 1.4rem;
+  border-bottom: 1px solid var(--line);
+}
+.rw-page .rw-pagetab {
+  background: transparent;
+  color: var(--ink-soft);
+  border: none;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  padding: .7rem 1.1rem;
+  margin-bottom: -1px;
+  font-size: .95rem;
+}
+.rw-page .rw-pagetab:hover { background: var(--panel-alt); color: var(--ink); }
+.rw-page .rw-pagetab.active { color: var(--ink); border-bottom-color: var(--gold); }
+
+.rw-page .rw-linkbtn {
+  display: inline;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--gold-deep);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.rw-page .rw-linkbtn:hover { background: none; color: var(--ink); }
+
+/* banner shown while looking at an older saved version */
+.rw-viewing {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: .8rem;
+  margin-bottom: 1.2rem;
+}
+
+/* ---------- summary card with the download buttons ---------- */
+
+.rw-hero-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.4rem;
+}
+.rw-page .rw-hero-title { margin: .6rem 0 .25rem; font-size: 1.5rem; }
+.rw-stats { display: flex; gap: 0; }
+.rw-stat {
+  display: flex; flex-direction: column; align-items: flex-start;
+  padding: 0 1.3rem; border-left: 1px solid var(--line);
+}
+.rw-stat:first-child { border-left: none; }
+.rw-stat-value { font-family: var(--serif); font-size: 1.8rem; font-weight: 600; line-height: 1.1; color: var(--ink); }
+.rw-stat-label { font-size: .78rem; color: var(--ink-soft); }
+.rw-plus { color: var(--match); }
+.rw-minus { color: var(--gap); }
+
+.rw-actions { display: flex; flex-wrap: wrap; gap: .8rem; margin-top: 1.2rem; }
+
+/* ---------- comparison ---------- */
+
+.rw-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .8rem; margin: .4rem 0 .6rem; }
+
+.rw-tabs { display: inline-flex; }
+.rw-page .rw-tab {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  padding: .45em .95em;
+  font-size: .85rem;
+  border-radius: 0;
+}
+.rw-page .rw-tab:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+.rw-page .rw-tab:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
+.rw-page .rw-tab + .rw-tab { border-left: none; }
+.rw-page .rw-tab:hover { background: var(--panel-alt); }
+.rw-page .rw-tab.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+.rw-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 900px) { .rw-columns { grid-template-columns: 1fr; } }
+
+.rw-pane { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); min-width: 0; }
+.rw-page .rw-pane-title {
+  margin: 0; padding: .6rem .9rem; border-bottom: 1px solid var(--line);
+  font-family: var(--sans); font-size: .8rem; font-weight: 600; color: var(--ink-soft);
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.rw-text {
+  margin: 0; padding: .9rem; white-space: pre-wrap; word-break: break-word;
+  font-family: inherit; font-size: .93rem; line-height: 1.6; color: var(--ink);
+  max-height: 560px; overflow: auto;
+}
+.rw-add { background: var(--match-wash); color: var(--match); border-radius: 2px; }
+.rw-del { background: var(--gap-wash); color: var(--gap); text-decoration: line-through; border-radius: 2px; }
+.rw-columns .rw-del { text-decoration: none; } /* side by side: colour alone marks removals; the highlighted view keeps the strikethrough */
+
+/* ---------- saved versions ---------- */
+
+.rw-vlist { display: flex; flex-direction: column; gap: .8rem; margin-top: 1rem; }
+.rw-vcard {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: 1rem 1.1rem; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius);
+}
+.rw-vcard-active { border-color: var(--gold); background: var(--gold-wash); }
+.rw-vcard-main { min-width: 0; flex: 1; }
+.rw-version-head { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+.rw-version-name { font-weight: 600; }
+.rw-page .rw-vcard-summary {
+  margin: .35rem 0 .45rem; max-width: none; color: var(--ink); font-size: .92rem;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.rw-version-date { color: var(--ink-soft); font-size: .82rem; }
+
+/* ---------- resume preview (looks like the downloaded resume) ---------- */
+
+.rv-paper {
+  background: #ffffff;
+  color: #18181b;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 10px rgba(20, 22, 31, 0.07);
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 2.2rem 2.6rem;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: .86rem;
+  line-height: 1.42;
+}
+.rv-paper h3, .rv-paper h4, .rv-paper p { font-family: inherit; color: inherit; max-width: none; }
+.rv-header { text-align: center; padding-bottom: .7rem; border-bottom: 1.5px solid #18181b; }
+.rv-name { margin: 0 0 .2rem; font-size: 1.75rem; font-weight: 700; line-height: 1.15; }
+.rv-tagline { margin: 0; color: #52525b; font-size: .95rem; }
+.rv-contact { margin: .3rem 0 0; color: #52525b; font-size: .82rem; }
+.rv-section { margin-top: 1rem; }
+.rv-section-title {
+  margin: 0 0 .5rem; padding-bottom: 2px; border-bottom: 1px solid #a1a1aa;
+  font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+}
+.rv-entry { display: flex; justify-content: space-between; gap: 1rem; margin-top: .5rem; }
+.rv-date { color: #52525b; font-size: .82rem; white-space: nowrap; }
+.rv-bullets { margin: .2rem 0 .1rem; padding-left: 1.15rem; }
+.rv-bullets li { margin: .12rem 0; }
+.rv-para { margin: .3rem 0 0; }
+
+@media (max-width: 640px) {
+  .rv-paper { padding: 1.4rem 1.2rem; }
+  .rw-stat { padding: 0 .8rem; }
+}
