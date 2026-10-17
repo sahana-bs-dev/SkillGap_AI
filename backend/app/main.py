@@ -1,16 +1,18 @@
 """
-Run with: uvicorn main:app --reload
+Run with (from the backend folder): uvicorn app.main:app --reload
 """
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI  # type: ignore
+from fastapi.middleware.cors import CORSMiddleware  # type: ignore
 from app.parsing import routes as parsing_routes
 from app.auth import routes as auth_routes
 from app.routes import analyze
 from app.routes.resume import router as resume_router
+from app.routes.loop import router as loop_router
 app = FastAPI(title="SkillGap AI API")
 
 app.include_router(resume_router)
+app.include_router(loop_router)
 
 app.include_router(analyze.router)
 

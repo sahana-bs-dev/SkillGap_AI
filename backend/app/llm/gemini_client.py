@@ -137,7 +137,9 @@ class GeminiClient:
 
         raw = response.text
         try:
-            return json.loads(raw)
+            # strict=False lets raw line breaks/tabs inside strings through; Gemini
+            # sometimes writes a real newline inside a multi-line resume value.
+            return json.loads(raw, strict=False)
         except json.JSONDecodeError as e:
             preview = raw[:300] if raw else raw
             raise ValueError(
