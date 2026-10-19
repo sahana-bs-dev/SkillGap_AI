@@ -618,5 +618,197 @@
         "url": "https://www.youtube.com/watch?v=VFQtSqChlsk"
       }
     ]
+  },
+  "machine learning": {
+    "learn": [],
+    "practice": []
+  },
+  "deep learning": {
+    "learn": [],
+    "practice": []
+  },
+  "numpy": {
+    "learn": [],
+    "practice": []
+  },
+  "pandas": {
+    "learn": [],
+    "practice": []
+  },
+  "scikit-learn": {
+    "learn": [],
+    "practice": []
+  },
+  "statistics": {
+    "learn": [],
+    "practice": []
+  },
+  "probability": {
+    "learn": [],
+    "practice": []
+  },
+  "model evaluation metrics": {
+    "learn": [],
+    "practice": []
+  },
+  "tensorflow": {
+    "learn": [],
+    "practice": []
+  },
+  "pytorch": {
+    "learn": [],
+    "practice": []
+  },
+  "nlp": {
+    "learn": [],
+    "practice": []
+  },
+  "data preprocessing": {
+    "learn": [],
+    "practice": []
+  },
+  "feature engineering": {
+    "learn": [],
+    "practice": []
+  },
+  "experiment documentation": {
+    "learn": [],
+    "practice": []
+  },
+  "html5": {
+    "learn": [],
+    "practice": []
+  },
+  "css3": {
+    "learn": [],
+    "practice": []
+  },
+  "rest api development": {
+    "learn": [],
+    "practice": []
+  },
+  "firebase": {
+    "learn": [],
+    "practice": []
+  },
+  "netlify": {
+    "learn": [],
+    "practice": []
+  },
+  "linear algebra": {
+    "learn": [],
+    "practice": []
+  },
+  "exploratory data analysis": {
+    "learn": [],
+    "practice": []
+  },
+  "model evaluation": {
+    "learn": [],
+    "practice": []
+  },
+  "langchain": {
+    "learn": [],
+    "practice": []
+  },
+  "llamaindex": {
+    "learn": [],
+    "practice": []
+  },
+  "retrieval-augmented generation": {
+    "learn": [],
+    "practice": []
+  },
+  "vector databases": {
+    "learn": [],
+    "practice": []
+  },
+  "embeddings": {
+    "learn": [],
+    "practice": []
+  },
+  "hugging face transformers": {
+    "learn": [],
+    "practice": []
+  },
+  "pinecone": {
+    "learn": [],
+    "practice": []
+  },
+  "chromadb": {
+    "learn": [],
+    "practice": []
+  },
+  "prompt engineering": {
+    "learn": [],
+    "practice": []
+  },
+  "azure": {
+    "learn": [],
+    "practice": []
+  },
+  "google cloud platform": {
+    "learn": [],
+    "practice": []
+  },
+  "model explainability": {
+    "learn": [],
+    "practice": []
+  },
+  "shap": {
+    "learn": [],
+    "practice": []
+  },
+  "lime": {
+    "learn": [],
+    "practice": []
+  },
+  "ci/cd pipelines": {
+    "learn": [],
+    "practice": []
+  },
+  "model deployment": {
+    "learn": [],
+    "practice": []
+  },
+  "computer vision": {
+    "learn": [],
+    "practice": []
+  },
+  "hyperparameter optimization": {
+    "learn": [],
+    "practice": []
+  },
+  "mlflow": {
+    "learn": [],
+    "practice": []
+  },
+  "data pipeline development": {
+    "learn": [],
+    "practice": []
+  },
+  "mlops": {
+    "learn": [],
+    "practice": []
+  },
+  "model monitoring": {
+    "learn": [],
+    "practice": []
+  },
+  "java": {
+    "learn": [],
+    "practice": []
+  },
+  "oop": {
+    "learn": [],
+    "practice": []
+  },
+  "operating systems": {
+    "learn": [],
+    "practice": []
+  },
+  "spring boot": {
+    "learn": [],
+    "practice": []
   }
 }

@@ -1,0 +1,23 @@
+/* Empty / error state shared by the analysis pages. */
+
+.empty-state {
+  text-align: center;
+  padding: 2.6rem 1.5rem;
+  margin-top: 1.2rem;
+}
+.empty-state h3 {
+  margin-bottom: .4rem;
+}
+.empty-state p {
+  max-width: 46ch;
+  margin: 0 auto 1.4rem;
+}
+.empty-state-action {
+  text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .empty-state {
+    padding: 1.8rem 1rem;
+  }
+}

@@ -402,6 +402,12 @@ function CompareBody({ type, a, b }) {
         {type === "analysis" && <AnalysisCompare earlier={earlier} later={later} />}
         {type === "loop" && <LoopCompare earlier={earlier} later={later} />}
         {type === "version" && <VersionCompare earlier={earlier} later={later} />}
+
+        <div className="callout" style={{ marginTop: "1.2rem" }}>
+          <p>
+            Want to try a new analysis? <Link to="/upload">Start a new analysis</Link>
+          </p>
+        </div>
       </>
     );
   }
@@ -416,9 +422,14 @@ function CompareBody({ type, a, b }) {
             <h1>{titles[type]}</h1>
             <p>The older one is always shown first as “Earlier”, so changes read from left to right.</p>
           </div>
-          <Link to="/history" className="btn secondary">
-            Back to history
-          </Link>
+          <div style={{ display: "flex", gap: ".6rem", flexWrap: "wrap" }}>
+            <Link to="/upload" className="btn">
+              Try a new analysis
+            </Link>
+            <Link to="/history" className="btn secondary">
+              Back to history
+            </Link>
+          </div>
         </div>
         {body}
         <footer className="note">SkillGap AI</footer>

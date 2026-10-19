@@ -1,9 +1,13 @@
 """
 Resume Rewrite Agent (Gemini).
 
-Rewrites the resume for the target JD WITHOUT inventing anything.
+Rewrites the resume WITHOUT inventing anything. Two modes:
+  - Job mode (matching_output given): tailor the resume to the target JD.
+  - ATS-fix mode (no matching_output): fix the problems an ATS report found,
+    with no job to tailor to.
 Two layers of protection against fabrication:
-  1. The prompt forbids adding facts and lists the missing skills as off-limits.
+  1. The prompt forbids adding facts (and, in job mode, lists the missing
+     skills as off-limits).
   2. run() checks the output in code: any number, missing skill, inflated
      verb, or new capitalised term that isn't in the original resume counts
      as a violation. On a violation it retries once with the offending items
@@ -37,6 +41,14 @@ _INFLATED_VERBS = (
     "streamlined", "revamped", "overhauled",
 )
 
+# Standard resume section words. Using these as headings adds no facts, so
+# they never count as an invented term.
+_STANDARD_HEADINGS = {
+    "summary", "profile", "objective", "education", "experience", "projects",
+    "skills", "certifications", "achievements", "contact", "work", "technical",
+    "professional", "languages", "interests", "awards", "internship", "internships",
+}
+
 
 def _has_term(term: str, text: str) -> bool:
     pattern = r"(?<![a-z0-9])" + re.escape(term.lower()) + r"(?![a-z0-9])"
@@ -60,10 +72,6 @@ class ResumeRewriteAgent(BaseAgent[ResumeRewriteInput, ResumeRewriteOutput]):
     # ---------- prompt ----------
 
     def build_prompt(self, input_data: ResumeRewriteInput) -> str:
-        matched = "\n".join(
-            f"- {m.skill}: {m.evidence}" for m in input_data.matching_output.matched_skills
-        ) or "- (none)"
-        missing = ", ".join(input_data.matching_output.missing_skills) or "(none)"
         banned_verbs = ", ".join(_INFLATED_VERBS)
 
         feedback_block = ""
@@ -73,6 +81,14 @@ class ResumeRewriteAgent(BaseAgent[ResumeRewriteInput, ResumeRewriteOutput]):
                 "that are not in the original resume: "
                 f"{self._feedback}.\nRemove them completely and do not add anything similar.\n"
             )
+
+        if input_data.matching_output is None:
+            return self._build_ats_prompt(input_data, banned_verbs, feedback_block)
+
+        matched = "\n".join(
+            f"- {m.skill}: {m.evidence}" for m in input_data.matching_output.matched_skills
+        ) or "- (none)"
+        missing = ", ".join(input_data.matching_output.missing_skills) or "(none)"
 
         return f"""You are a resume editor. Rewrite the resume below so it reads stronger for the target job, using ONLY facts already in the resume.
 
@@ -105,6 +121,47 @@ Return ONLY this JSON object:
   "warnings": ["places where the resume lacks information you could not improve, e.g. 'Project X has no measurable result; add a real one yourself'"]
 }}"""
 
+    @staticmethod
+    def _build_ats_prompt(input_data: ResumeRewriteInput, banned_verbs: str, feedback_block: str) -> str:
+        issues = "\n".join(
+            f"- [{i.severity}] {i.category}: {i.message}" for i in input_data.ats_issues
+        ) or "- (none listed)"
+        suggestions = "\n".join(f"- {s}" for s in input_data.ats_suggestions) or "- (none listed)"
+
+        return f"""You are a resume editor. An ATS (applicant tracking system) check found problems with the resume below. Rewrite the resume to fix those problems, using ONLY facts already in the resume. There is no target job: do not tailor it to any role.
+
+STRICT RULES (never break these):
+1. Do NOT add any skill, tool, technology, employer, project, degree, certification, date, or number that is not already in the original resume.
+2. You may only: reword bullets, tighten wording, fix spacing, make section headings and date formats consistent, split run-on text into clear bullets, and reorder bullets so the strongest work comes first.
+3. Never invent metrics. If a bullet has no numbers, leave it without numbers.
+4. If you are unsure whether something is supported by the resume, keep the original wording.
+5. Keep every section and every project/experience entry from the original. Output plain text, same content.
+6. NEVER delete or drop any skill, tool, or technology that appears in the original resume.
+7. Do not change what the person did. If words in the original are stuck together without spaces, fix the spacing only.
+8. Do NOT rename, reinterpret, or add technology terms. For example, "web search" must not become "web scraping", and "API" must not become "REST API", unless the exact term is already in the original.
+9. Use only plain action verbs that mean the same as the original, such as: built, created, developed, made, implemented, wrote, set up, worked on. Do NOT use these stronger verbs unless the original resume already uses that exact word: {banned_verbs}. Never claim leadership, ownership, design decisions, or scale that the original does not state.
+10. Use plain, standard section headings (for example Summary, Education, Experience, Projects, Skills, Certifications) only for sections the original already has. Do not add new sections.
+11. Some problems cannot be fixed in plain text (columns, tables, images, fonts, page layout). Ignore those: the download template already produces a clean ATS-friendly layout. Fix only what wording, structure and consistency can fix.
+12. If a problem can only be fixed by adding information the resume does not contain (for example a missing contact detail or a measurable result), do NOT make it up. Leave it and mention it in "warnings".
+
+ATS ISSUES FOUND:
+{issues}
+
+ATS SUGGESTIONS:
+{suggestions}
+{feedback_block}
+ORIGINAL RESUME:
+\"\"\"
+{input_data.resume_text}
+\"\"\"
+
+Return ONLY this JSON object:
+{{
+  "rewritten_text": "the full rewritten resume as plain text",
+  "diff_summary": ["Section: which ATS problem you fixed and how", "..."],
+  "warnings": ["ATS problems you could not fix without information the resume does not contain, e.g. 'Add a phone number or LinkedIn link yourself'"]
+}}"""
+
     # ---------- no-fabrication guard ----------
 
     @staticmethod
@@ -119,10 +176,10 @@ Return ONLY this JSON object:
             if n not in original_numbers:
                 found.append(f"number '{n}'")
 
-        # 2. missing skills that were injected
-        skills = list(input_data.matching_output.missing_skills) + [
-            g.skill for g in input_data.gaps
-        ]
+        # 2. missing skills that were injected (job mode only; ATS-fix mode has none)
+        skills = [g.skill for g in input_data.gaps]
+        if input_data.matching_output is not None:
+            skills = list(input_data.matching_output.missing_skills) + skills
         for skill in skills:
             if not skill.strip():
                 continue
@@ -146,6 +203,8 @@ Return ONLY this JSON object:
                         continue
                     if token.lower() in original_words:
                         continue
+                    if token.lower() in _STANDARD_HEADINGS:
+                        continue  # a standard section word, not a new fact
                     if _squash(token) in original_squashed:
                         continue  # same word, original just had no spaces
                     found.append(f"term '{token}'")

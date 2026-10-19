@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import AgentStatusIndicator from "../../components/AgentStatus/AgentStatusIndicator";
+import EmptyState from "../../components/EmptyState/EmptyState";
 import ScoreRing from "../../components/ScoreRing";
 import { runATSAnalysis } from "../../api/analyzeApi";
 import "./ATSReport.css";
@@ -11,18 +12,48 @@ import "../../components/Layout/Sidebar.css";
 // Expects the parsed resume text from the Upload page via router state:
 //   navigate("/ats-report", { state: { resumeText, jdText } })
 
+function IssueRows({ issues }) {
+  const rows = [];
+  for (let i = 0; i < issues.length; i++) {
+    rows.push(
+      <div className="row-item" key={"issue-" + i}>
+        <div>
+          <div className="label">{issues[i].category}</div>
+          <p className="desc">{issues[i].message}</p>
+        </div>
+        <span className={"tag " + severityTag(issues[i].severity)}>{issues[i].severity}</span>
+      </div>
+    );
+  }
+  return <div className="row-list">{rows}</div>;
+}
+
+function SuggestionRows({ suggestions }) {
+  const rows = [];
+  for (let i = 0; i < suggestions.length; i++) {
+    rows.push(
+      <div className="row-item" key={"suggestion-" + i}>
+        <div>
+          <p className="desc">{suggestions[i]}</p>
+        </div>
+      </div>
+    );
+  }
+  return <div className="row-list">{rows}</div>;
+}
+
 export default function ATSReport() {
   const { state } = useLocation();
   const resumeText = state?.resumeText;
 
-  const [status, setStatus] = useState("loading"); // 'loading' | 'done' | 'error'
+  // 'empty' = no resume to check yet, 'loading' | 'done' | 'error' as before
+  const [status, setStatus] = useState("loading");
   const [report, setReport] = useState(null);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [attempt, setAttempt] = useState(0); // goes up by one on "Try again"
 
   useEffect(() => {
     if (!resumeText) {
-      setStatus("error");
-      setErrorMsg("No resume found for this report — start a new analysis.");
+      setStatus("empty");
       return;
     }
 
@@ -37,24 +68,26 @@ export default function ATSReport() {
       })
       .catch((err) => {
         if (cancelled) return;
-        setErrorMsg(err.message);
+        // The real error stays in the console for you; the user sees a friendly message.
+        console.error("ATS analysis failed:", err);
         setStatus("error");
       });
 
     return () => {
       cancelled = true;
     };
-  }, [resumeText]);
+  }, [resumeText, attempt]);
 
+  // The agent progress strip only shows while the analysis is running or finished.
   const agents = [
     { name: "Supervisor Agent", status: "done", label: "routed" },
     {
       name: "ATS Agent",
-      status: status === "done" ? "done" : status === "error" ? "idle" : "working",
-      label: status === "done" ? "complete" : status === "error" ? "failed" : "running…",
+      status: status === "done" ? "done" : "working",
+      label: status === "done" ? "complete" : "running…",
     },
-    { name: "Matching Agent", status: "idle", label: "not run (no JD)" },
   ];
+  const showAgents = status === "loading" || status === "done";
 
   return (
     <div className="shell">
@@ -66,23 +99,39 @@ export default function ATSReport() {
             <h1>ATS compatibility report</h1>
             <p>Checked against common tracking-system parsers</p>
           </div>
-          <Link to="/resume-rewrite" className="btn secondary">
-            Fix with Rewrite Agent
-          </Link>
+          {/* Sends the resume and this ATS report to the rewrite page, which fixes
+              the issues found here and then offers to re-check the score. */}
+          {status === "done" && report && (
+            <Link to="/resume-rewrite" state={{ resumeText, atsReport: report }} className="btn">
+              Fix it by rewriting resume
+            </Link>
+          )}
         </div>
 
-        <AgentStatusIndicator agents={agents} />
+        {showAgents ? <AgentStatusIndicator agents={agents} /> : null}
 
         {status === "loading" && (
           <div className="panel">
-            <p>Running the ATS Agent…</p>
+            <p>Checking your resume…</p>
           </div>
         )}
 
+        {status === "empty" && (
+          <EmptyState
+            title="No resume to check yet"
+            message="Upload or paste your resume to see how well it reads to applicant tracking systems."
+            actionLabel="Start a new analysis"
+            actionTo="/upload"
+          />
+        )}
+
         {status === "error" && (
-          <div className="panel">
-            <p style={{ color: "var(--gap)" }}>{errorMsg}</p>
-          </div>
+          <EmptyState
+            title="We couldn't check your resume"
+            message="Something went wrong while checking your resume. Please try again."
+            actionLabel="Try again"
+            onAction={() => setAttempt(attempt + 1)}
+          />
         )}
 
         {status === "done" && report && (
@@ -99,19 +148,7 @@ export default function ATSReport() {
                 {report.issues.length === 0 ? (
                   <p>No issues found — this resume parses cleanly.</p>
                 ) : (
-                  <div className="row-list">
-                    {report.issues.map((issue, i) => (
-                      <div className="row-item" key={i}>
-                        <div>
-                          <div className="label">{issue.category}</div>
-                          <p className="desc">{issue.message}</p>
-                        </div>
-                        <span className={`tag ${severityTag(issue.severity)}`}>
-                          {issue.severity}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                  <IssueRows issues={report.issues} />
                 )}
               </div>
 
@@ -120,23 +157,15 @@ export default function ATSReport() {
                 {report.suggestions.length === 0 ? (
                   <p>No further suggestions.</p>
                 ) : (
-                  <div className="row-list">
-                    {report.suggestions.map((s, i) => (
-                      <div className="row-item" key={i}>
-                        <div>
-                          <p className="desc">{s}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <SuggestionRows suggestions={report.suggestions} />
                 )}
               </div>
             </div>
 
             <div className="callout" style={{ marginTop: "1.2rem" }}>
               <p>
-                Have a specific job in mind? Add the job description to also run the JD
-                Analysis and Matching Agents — <Link to="/upload">go to New analysis</Link>.
+                Have a specific job in mind? Add the job description to also see how well your
+                resume matches it — <Link to="/upload">go to New analysis</Link>.
               </p>
             </div>
           </>

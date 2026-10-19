@@ -108,7 +108,6 @@ button:focus-visible, .btn:focus-visible, textarea:focus-visible {
 .panel h3 { margin-bottom: .7rem; }
 
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
-@media (max-width: 720px) { .grid-2 { grid-template-columns: 1fr; } }
 
 /* ---------- forms ---------- */
 .field { margin-bottom: 1.2rem; }
@@ -150,3 +149,34 @@ textarea {
   color: #5c470a;
 }
 .callout p { margin: 0; color: inherit; }
+
+/* ---------- phones and small tablets ---------- */
+@media (max-width: 768px) {
+  /* stop any wide element from causing a sideways scroll */
+  html, body { max-width: 100%; overflow-x: hidden; }
+
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.45rem; }
+  h3 { font-size: 1.1rem; }
+  p  { max-width: none; }
+
+  .page-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.4rem;
+    padding-bottom: 1rem;
+  }
+  .page-head > div { min-width: 0; }
+
+  .panel { padding: 1.1rem 1rem; }
+  .grid-2 { grid-template-columns: minmax(0, 1fr); }
+
+  textarea { min-height: 140px; }
+
+  .dropzone { padding: 1.5rem 1rem; }
+
+  /* the Paste / Upload switch never gets wider than the screen */
+  .toggle-pair { max-width: 100%; margin-bottom: 1.2rem; }
+  .toggle-pair button { padding: .65em 1em; }
+}

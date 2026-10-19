@@ -5,11 +5,8 @@
 //                                   stop_reason, iterations[{ iteration, score, accepted, remaining_gaps[] }] }]
 // Resume versions already exist: /api/resume/versions (see rewriteApi.js).
 //
-// While the backend has no /api/history/* routes (HTTP 404) the pages show clearly
-// labelled SAMPLE data. Any other failure (401, 500, server offline) is a real error.
+// Any failure (404, 401, 500, server offline) is shown as a real error.
 // Full contract: docs/phase9_frontend.md
-
-import { SAMPLE_ANALYSES, SAMPLE_LOOPS } from "./historyMock";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
@@ -17,7 +14,7 @@ function getToken() {
   return localStorage.getItem("token") || localStorage.getItem("access_token") || "";
 }
 
-async function fetchList(path, label, sample) {
+async function fetchList(path, label) {
   let res;
   try {
     res = await fetch(`${API_BASE}${path}`, { headers: { Authorization: `Bearer ${getToken()}` } });
@@ -25,9 +22,6 @@ async function fetchList(path, label, sample) {
     throw new Error("Could not reach the server. Is the backend running?");
   }
 
-  if (res.status === 404 || res.status === 405) {
-    return { items: sample, isSample: true }; // endpoint not built yet
-  }
   if (res.status === 401) throw new Error("Session expired. Please log in again.");
 
   const data = await res.json().catch(() => ({}));
@@ -38,9 +32,9 @@ async function fetchList(path, label, sample) {
 }
 
 export function listAnalyses() {
-  return fetchList("/api/history/analyses", "Could not load your analysis history", SAMPLE_ANALYSES);
+  return fetchList("/api/history/analyses", "Could not load your analysis history");
 }
 
 export function listLoops() {
-  return fetchList("/api/history/loops", "Could not load your improvement loops", SAMPLE_LOOPS);
+  return fetchList("/api/history/loops", "Could not load your improvement loops");
 }

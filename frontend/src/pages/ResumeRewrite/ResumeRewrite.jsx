@@ -1,7 +1,8 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import AgentStatusIndicator from "../../components/AgentStatus/AgentStatusIndicator";
+import AnalysisLoader from "../../components/AnalysisLoader";
 import { runResumeRewrite, listResumeVersions, getResumeVersion } from "../../api/rewriteApi";
+import { runATSAnalysis } from "../../api/analyzeApi";
 import { diffText, buildSegments, diffStats } from "../../utils/textDiff";
 import { parseResume, plainForDiff, resumeFileName } from "../../utils/resumeFormat";
 import ResumePreview from "./ResumePreview";
@@ -12,8 +13,24 @@ import "../../components/Layout/Sidebar.css";
 
 // Route: opened from the Skill Gap page with
 //   navigate("/resume-rewrite", { state: { resumeText, matchingOutput, gaps } })
-// A rewrite runs automatically in that case. Opened from the sidebar (no state),
+// or from the ATS report with
+//   navigate("/resume-rewrite", { state: { resumeText, atsReport } })
+// A rewrite runs automatically in either case. Opened from the sidebar (no state),
 // the page opens on the "Saved versions" tab.
+
+const JOB_LOADER_MESSAGES = [
+  "Reading your resume",
+  "Rewording it to fit the job",
+  "Checking that nothing new was invented",
+  "Getting your files ready",
+];
+
+const ATS_LOADER_MESSAGES = [
+  "Reading your resume",
+  "Fixing the problems the check found",
+  "Checking that nothing new was invented",
+  "Getting your files ready",
+];
 
 /* ---------- helpers ---------- */
 
@@ -38,9 +55,9 @@ function hashString(text) {
   return String(hash);
 }
 
-function makeCacheKey(resumeText, matchingOutput, gaps) {
+function makeCacheKey(resumeText, matchingOutput, gaps, atsReport) {
   const token = (localStorage.getItem("token") || "").slice(-12);
-  return hashString(JSON.stringify([token, resumeText, matchingOutput, gaps]));
+  return hashString(JSON.stringify([token, resumeText, matchingOutput, gaps, atsReport]));
 }
 
 function readCache(key) {
@@ -155,17 +172,22 @@ export default function ResumeRewrite() {
   const resumeText = state?.resumeText;
   const matchingOutput = state?.matchingOutput;
   const gaps = state?.gaps;
-  const hasInputs = Boolean(resumeText && matchingOutput && gaps);
+  const atsReport = state?.atsReport;
+  // ATS-fix mode: opened from the ATS report, so there is no job to tailor to.
+  const atsMode = Boolean(resumeText && atsReport && !matchingOutput);
+  const hasInputs = Boolean(resumeText && ((matchingOutput && gaps) || atsMode));
 
   const [pageTab, setPageTab] = useState(hasInputs ? "review" : "saved"); // 'review' | 'saved'
   const [status, setStatus] = useState(hasInputs ? "loading" : "idle"); // 'idle' | 'loading' | 'done' | 'error'
-  const [rewriteStage, setRewriteStage] = useState("idle");
   const [fresh, setFresh] = useState(null); // the rewrite from this visit
   const [selected, setSelected] = useState(null); // an older saved version the person opened
   const [errorMsg, setErrorMsg] = useState("");
   const [viewMode, setViewMode] = useState("side"); // 'side' | 'inline' | 'preview'
   const [exporting, setExporting] = useState(""); // '' | 'pdf' | 'docx'
   const [exportError, setExportError] = useState("");
+
+  // ATS re-check of the rewritten resume (ATS-fix mode only)
+  const [recheck, setRecheck] = useState({ status: "idle", report: null, error: "" }); // status: 'idle' | 'loading' | 'done' | 'error'
 
   const [versions, setVersions] = useState([]);
   const [versionsStatus, setVersionsStatus] = useState("loading"); // 'loading' | 'done' | 'error'
@@ -204,33 +226,30 @@ export default function ResumeRewrite() {
 
   async function runRewrite(force) {
     setStatus("loading");
-    setRewriteStage("working");
     setErrorMsg("");
     setPageTab("review");
+    setRecheck({ status: "idle", report: null, error: "" });
 
-    const key = makeCacheKey(resumeText, matchingOutput, gaps);
+    const key = makeCacheKey(resumeText, matchingOutput, gaps, atsReport);
     if (!force) {
       const cached = readCache(key);
       if (cached) {
         setFresh(fromRewriteResult(cached, resumeText));
-        setRewriteStage("done");
         setStatus("done");
         return;
       }
     }
 
     try {
-      const data = await runResumeRewrite(resumeText, matchingOutput, gaps);
+      const data = await runResumeRewrite(resumeText, matchingOutput, gaps, atsReport);
       writeCache(key, data);
       setFresh(fromRewriteResult(data, resumeText));
       setSelected(null);
-      setRewriteStage("done");
       setStatus("done");
       refreshVersions(); // the new version was saved by the backend, so list it
     } catch (err) {
       setErrorMsg(err.message);
       setStatus("error");
-      setRewriteStage("error");
     }
   }
 
@@ -251,11 +270,11 @@ export default function ResumeRewrite() {
   }, []);
 
   useEffect(() => {
-    if (!resumeText || !matchingOutput || !gaps) return; // no inputs: stay in the "idle" state
+    if (!hasInputs) return; // no inputs: stay in the "idle" state
     if (hasStarted.current) return;
     hasStarted.current = true;
     runRewrite(false);
-  }, [resumeText, matchingOutput, gaps]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [resumeText, matchingOutput, gaps, atsReport]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function openVersion(versionId) {
     setOpeningId(versionId);
@@ -296,17 +315,16 @@ export default function ResumeRewrite() {
     navigate("/improvement-loop", { state: { resumeText, matchingOutput, gaps } });
   }
 
-  const agents = [
-    { name: "Supervisor Agent", status: "done", label: "routed" },
-    {
-      name: "Resume Rewrite Agent",
-      status: rewriteStage === "done" ? "done" : rewriteStage === "error" ? "idle" : rewriteStage === "working" ? "working" : "idle",
-      label:
-        rewriteStage === "done" ? "complete" :
-        rewriteStage === "error" ? "failed" :
-        rewriteStage === "working" ? "running…" : "not run",
-    },
-  ];
+  // ATS-fix mode: score the rewritten resume with the same ATS Agent as before.
+  async function handleRecheck() {
+    setRecheck({ status: "loading", report: null, error: "" });
+    try {
+      const report = await runATSAnalysis(current.rewritten);
+      setRecheck({ status: "done", report: report, error: "" });
+    } catch (err) {
+      setRecheck({ status: "error", report: null, error: err.message });
+    }
+  }
 
   const viewingOlder = Boolean(selected);
   const showLoading = status === "loading" && !selected;
@@ -315,6 +333,10 @@ export default function ResumeRewrite() {
   const showResult = Boolean(current) && (current === selected || status === "done");
   const reviewCount = current ? current.warnings.length : 0;
   const noChanges = stats.added === 0 && stats.removed === 0;
+
+  const scoreBefore = atsMode ? atsReport.score : null;
+  const scoreAfter = recheck.status === "done" && recheck.report ? recheck.report.score : null;
+  const scoreDelta = scoreAfter !== null && scoreBefore !== null ? scoreAfter - scoreBefore : null;
 
   return (
     <div className="shell">
@@ -325,16 +347,21 @@ export default function ResumeRewrite() {
             <span className="kicker"></span>
             <h1>Resume rewrite</h1>
             <p>
-              We reword your resume to fit the job. We only rephrase what you already wrote — we never add skills,
-              employers or numbers you did not give us.
+              {atsMode
+                ? "We fix the problems the ATS check found by rewording and tidying what you already wrote. We never add skills, employers or numbers you did not give us."
+                : "We reword your resume to fit the job. We only rephrase what you already wrote — we never add skills, employers or numbers you did not give us."}
             </p>
           </div>
-          <Link to="/skill-gap" className="btn secondary">
-            Back to skill gap plan
-          </Link>
+          {atsMode ? (
+            <button className="btn secondary" onClick={() => navigate(-1)}>
+              Back to ATS report
+            </button>
+          ) : (
+            <Link to="/skill-gap" className="btn secondary">
+              Back to skill gap plan
+            </Link>
+          )}
         </div>
-
-        {hasInputs && <AgentStatusIndicator agents={agents} />}
 
         <div className="rw-pagetabs" role="tablist" aria-label="Resume rewrite sections">
           <button
@@ -374,7 +401,7 @@ export default function ResumeRewrite() {
               <div className="panel">
                 <h3>Nothing to review yet</h3>
                 <p className="desc">
-                  A rewrite starts from the skill gap plan after you match your resume to a job.{" "}
+                  A rewrite starts from the ATS report or the skill gap plan.{" "}
                   <Link to="/upload">Start a new analysis</Link>, or open one of your{" "}
                   <button className="rw-linkbtn" onClick={() => setPageTab("saved")}>
                     saved versions
@@ -385,13 +412,11 @@ export default function ResumeRewrite() {
             )}
 
             {showLoading && (
-              <div className="panel">
-                <h3>Rewriting your resume…</h3>
-                <p className="desc">
-                  This usually takes 10 to 30 seconds. We are rewording your own content to fit the job, and checking that
-                  nothing new was invented.
-                </p>
-              </div>
+              <AnalysisLoader
+                title="Rewriting your resume"
+                messages={atsMode ? ATS_LOADER_MESSAGES : JOB_LOADER_MESSAGES}
+                hint="This usually takes 10 to 30 seconds. Please keep this page open."
+              />
             )}
 
             {showError && (
@@ -459,7 +484,8 @@ export default function ResumeRewrite() {
                   <div className="panel" style={{ marginTop: "1.2rem", borderColor: "var(--gap)" }}>
                     <h3>Check these before you use the resume</h3>
                     <p className="desc">
-                      These items appear in the rewrite but were not found in your original resume. Remove or correct
+                      These items need your attention: details that appear in the rewrite but were not found in your
+                      original resume, or problems we could not fix without information only you have. Remove or correct
                       anything that is not true.
                     </p>
                     <div className="row-list">
@@ -513,8 +539,66 @@ export default function ResumeRewrite() {
                   <DiffView ops={ops} mode={viewMode} rewritten={current.rewritten} />
                 </div>
 
-                {/* 5. next step */}
-                {hasInputs && !viewingOlder && (
+                {/* 5a. next step in ATS-fix mode: check the ATS score again */}
+                {atsMode && !viewingOlder && (
+                  <div className="panel" style={{ marginTop: "1.2rem" }}>
+                    <h3>Check your ATS score again?</h3>
+                    <p className="desc">
+                      Your original resume scored <strong>{scoreBefore}/100</strong>. Run the ATS check on this rewrite to
+                      see whether the score improved.
+                    </p>
+
+                    {recheck.status === "done" && recheck.report && (
+                      <div style={{ margin: ".8rem 0" }}>
+                        <p>
+                          <strong>
+                            {scoreBefore} → {scoreAfter}
+                          </strong>{" "}
+                          <span className={"tag " + (scoreDelta > 0 ? "match" : scoreDelta < 0 ? "gap" : "active")}>
+                            {scoreDelta > 0 ? "+" + scoreDelta + " improved" : scoreDelta < 0 ? scoreDelta + " lower" : "no change"}
+                          </span>
+                        </p>
+                        {recheck.report.issues.length === 0 ? (
+                          <p className="desc">No ATS issues found in the rewritten resume.</p>
+                        ) : (
+                          <>
+                            <p className="desc">Still flagged ({recheck.report.issues.length}):</p>
+                            <div className="row-list">
+                              {recheck.report.issues.map((issue, i) => (
+                                <div className="row-item" key={i}>
+                                  <div>
+                                    <div className="label">{issue.category}</div>
+                                    <p className="desc">{issue.message}</p>
+                                  </div>
+                                  <span className={"tag " + (issue.severity === "high" ? "gap" : issue.severity === "low" ? "match" : "active")}>
+                                    {issue.severity}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    {recheck.status === "error" && <p style={{ color: "var(--gap)" }}>{recheck.error}</p>}
+
+                    <div className="rw-actions">
+                      <button className="btn" onClick={handleRecheck} disabled={recheck.status === "loading"}>
+                        {recheck.status === "loading" ? "Checking…" : recheck.status === "done" ? "Check again" : "Check ATS score again"}
+                      </button>
+                      <button className="btn ghost" onClick={() => runRewrite(true)} disabled={status === "loading"}>
+                        Make a different rewrite
+                      </button>
+                    </div>
+                    <p className="desc rw-small">
+                      &ldquo;Make a different rewrite&rdquo; runs the rewrite again and saves the result as a new version.
+                    </p>
+                  </div>
+                )}
+
+                {/* 5b. next step in job mode: improvement loop */}
+                {hasInputs && !atsMode && !viewingOlder && (
                   <div className="panel" style={{ marginTop: "1.2rem" }}>
                     <h3>Want a higher match score?</h3>
                     <p className="desc">
@@ -576,6 +660,7 @@ export default function ResumeRewrite() {
                           <span className="rw-version-name">Version {v.version_no}</span>
                           {index === 0 && <span className="tag active">Latest</span>}
                           {v.source === "improvement_loop" && <span className="tag">From improvement loop</span>}
+                          {v.source === "ats_fix" && <span className="tag">ATS fix</span>}
                           {v.warning_count > 0 && (
                             <span className="tag gap">
                               {v.warning_count} to check

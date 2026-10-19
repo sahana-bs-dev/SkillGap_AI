@@ -5,6 +5,10 @@ GET  /api/resume/versions/{id}      — one full version (original + rewritten +
 
 Versions are always scoped to the logged-in user. A rewrite is only saved
 if the agent succeeded; agent failures come back as 502, same as /analyze.
+
+Two kinds of rewrite share this route:
+  - job rewrite: matching_output + gaps are sent (tailored to a job)
+  - ATS fix: no matching_output; ats_issues / ats_suggestions are sent instead
 """
 
 from __future__ import annotations
@@ -62,6 +66,8 @@ def rewrite_resume(payload: RewriteRequest, current_user: dict = Depends(get_cur
         resume_text=payload.resume_text,
         matching_output=payload.matching_output,
         gaps=payload.gaps,
+        ats_issues=payload.ats_issues,
+        ats_suggestions=payload.ats_suggestions,
     )
     result = _rewrite_agent.run(agent_input)
     if not result.success:
@@ -79,6 +85,7 @@ def rewrite_resume(payload: RewriteRequest, current_user: dict = Depends(get_cur
         "rewritten_text": data.rewritten_text,
         "diff_summary": data.diff_summary,
         "warnings": data.warnings,
+        "source": "ats_fix" if payload.matching_output is None else "rewrite",
         "created_at": created_at,
     }
     inserted = resume_versions_collection.insert_one(doc)

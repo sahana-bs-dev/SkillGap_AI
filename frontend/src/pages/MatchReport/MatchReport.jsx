@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
-import AgentStatusIndicator from "../../components/AgentStatus/AgentStatusIndicator";
+import AnalysisLoader from "../../components/AnalysisLoader";
+import EmptyState from "../../components/EmptyState/EmptyState";
 import ScoreRing from "../../components/ScoreRing";
 import { runMatchAnalysis } from "../../api/analyzeApi";
 import "./MatchReport.css";
@@ -11,19 +12,60 @@ import "../../components/Layout/Sidebar.css";
 // Expects both texts from the Upload page via router state:
 //   navigate("/match-report", { state: { resumeText, jdText } })
 
+function MatchedRows({ matched }) {
+  const rows = [];
+  for (let i = 0; i < matched.length; i++) {
+    rows.push(
+      <div className="row-item" key={"matched-" + i}>
+        <div>
+          <div className="label">{matched[i].skill}</div>
+          <p className="desc">{matched[i].evidence}</p>
+        </div>
+      </div>
+    );
+  }
+  return <div className="row-list">{rows}</div>;
+}
+
+function MissingRows({ missing }) {
+  const rows = [];
+  for (let i = 0; i < missing.length; i++) {
+    rows.push(
+      <div className="row-item" key={"missing-" + i}>
+        <div>
+          <div className="label">{missing[i]}</div>
+        </div>
+      </div>
+    );
+  }
+  return <div className="row-list">{rows}</div>;
+}
+
+function ExperienceRows({ experience }) {
+  const rows = [];
+  for (let i = 0; i < experience.length; i++) {
+    rows.push(
+      <div className="row-item" key={"experience-" + i}>
+        <p className="desc">{experience[i]}</p>
+      </div>
+    );
+  }
+  return <div className="row-list">{rows}</div>;
+}
+
 export default function MatchReport() {
   const { state } = useLocation();
   const resumeText = state?.resumeText;
   const jdText = state?.jdText;
 
-  const [status, setStatus] = useState("loading"); // 'loading' | 'done' | 'error'
+  // 'empty' = no resume / job description yet, 'loading' | 'done' | 'error' as before
+  const [status, setStatus] = useState("loading");
   const [report, setReport] = useState(null);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [attempt, setAttempt] = useState(0); // goes up by one on "Try again"
 
   useEffect(() => {
     if (!resumeText || !jdText) {
-      setStatus("error");
-      setErrorMsg("Missing resume or job description — start a new analysis.");
+      setStatus("empty");
       return;
     }
 
@@ -38,28 +80,15 @@ export default function MatchReport() {
       })
       .catch((err) => {
         if (cancelled) return;
-        setErrorMsg(err.message);
+        // The real error stays in the console for you; the user sees a friendly message.
+        console.error("Match analysis failed:", err);
         setStatus("error");
       });
 
     return () => {
       cancelled = true;
     };
-  }, [resumeText, jdText]);
-
-  const agents = [
-    { name: "Supervisor Agent", status: "done", label: "routed" },
-    {
-      name: "JD Analysis Agent",
-      status: status === "loading" ? "working" : "done",
-      label: status === "loading" ? "running…" : "complete",
-    },
-    {
-      name: "Matching Agent",
-      status: status === "done" ? "done" : status === "error" ? "idle" : "working",
-      label: status === "done" ? "complete" : status === "error" ? "failed" : "running…",
-    },
-  ];
+  }, [resumeText, jdText, attempt]);
 
   return (
     <div className="shell">
@@ -71,23 +100,31 @@ export default function MatchReport() {
             <h1>Match report</h1>
             <p>How your resume lines up against this job description</p>
           </div>
-          <Link to="/skill-gap" state={{ matchingOutput: report, resumeText }} className="btn secondary">
-  View skill gap &amp; plan
-</Link>
+          {status === "done" && report && (
+            <Link to="/skill-gap" state={{ matchingOutput: report, resumeText }} className="btn secondary">
+              View skill gap &amp; plan
+            </Link>
+          )}
         </div>
 
-        <AgentStatusIndicator agents={agents} />
+        {status === "loading" && <AnalysisLoader />}
 
-        {status === "loading" && (
-          <div className="panel">
-            <p>Running JD Analysis and Matching Agents…</p>
-          </div>
+        {status === "empty" && (
+          <EmptyState
+            title="No match to show yet"
+            message="Add your resume and a job description to see how well they line up."
+            actionLabel="Start a new analysis"
+            actionTo="/upload"
+          />
         )}
 
         {status === "error" && (
-          <div className="panel">
-            <p style={{ color: "var(--gap)" }}>{errorMsg}</p>
-          </div>
+          <EmptyState
+            title="We couldn't compare your resume"
+            message="Something went wrong while matching your resume to this job. Please try again."
+            actionLabel="Try again"
+            onAction={() => setAttempt(attempt + 1)}
+          />
         )}
 
         {status === "done" && report && (
@@ -104,17 +141,7 @@ export default function MatchReport() {
                 {report.matched_skills.length === 0 ? (
                   <p>No direct matches found.</p>
                 ) : (
-                  <div className="row-list">
-                    {report.matched_skills.map((m, i) => (
-                      <div className="row-item" key={i}>
-                        <div>
-                          <div className="label">{m.skill}</div>
-                          <p className="desc">{m.evidence}</p>
-                        </div>
-                        <span className="tag match">matched</span>
-                      </div>
-                    ))}
-                  </div>
+                  <MatchedRows matched={report.matched_skills} />
                 )}
               </div>
 
@@ -123,16 +150,7 @@ export default function MatchReport() {
                 {report.missing_skills.length === 0 ? (
                   <p>No gaps found — great coverage.</p>
                 ) : (
-                  <div className="row-list">
-                    {report.missing_skills.map((skill, i) => (
-                      <div className="row-item" key={i}>
-                        <div>
-                          <div className="label">{skill}</div>
-                        </div>
-                        <span className="tag gap">missing</span>
-                      </div>
-                    ))}
-                  </div>
+                  <MissingRows missing={report.missing_skills} />
                 )}
               </div>
             </div>
@@ -142,13 +160,7 @@ export default function MatchReport() {
               {report.relevant_experience.length === 0 ? (
                 <p>No specific experience highlighted for this role.</p>
               ) : (
-                <div className="row-list">
-                  {report.relevant_experience.map((exp, i) => (
-                    <div className="row-item" key={i}>
-                      <p className="desc">{exp}</p>
-                    </div>
-                  ))}
-                </div>
+                <ExperienceRows experience={report.relevant_experience} />
               )}
             </div>
 

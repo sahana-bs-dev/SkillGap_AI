@@ -1,10 +1,14 @@
 """
-ATS Agent — Groq (llama-3.1-8b-instant).
+ATS Agent — Groq (openai/gpt-oss-20b).
 
 Checks a resume's plain-text for the kind of formatting/parsing issues
 that trip up real ATS software (tables, columns, non-standard section
 headers, missing standard sections, odd characters left over from PDF
-extraction, etc.) and returns a score + structured issue list.
+extraction, etc.) and returns a structured issue list.
+
+The numeric score is NOT trusted from the model. The /analyze/ats route
+overwrites it with app.utils.ats_scoring.compute_ats_score(), which is
+calculated in code from the resume text and these issues.
 
 This agent never sees a job description — it only judges the resume in
 isolation. That's what makes it usable on the "resume-only" route.
@@ -27,9 +31,9 @@ class ATSAgent(BaseAgent[ATSInput, ATSOutput]):
 You are an ATS (Applicant Tracking System) formatting checker.
 
 You will be given the PLAIN TEXT extracted from a resume (already run
-through a PDF/DOCX text extractor). Your job is to judge how well this
-resume would survive being parsed by real ATS software, based only on
-what's visible in this extracted text.
+through a PDF/DOCX text extractor). Your job is to find problems that
+would hurt how well this resume is parsed by real ATS software, based
+only on what's visible in this extracted text.
 
 Look for signs of:
 - Tables or multi-column layouts (text that reads out of order, or
@@ -43,10 +47,16 @@ Look for signs of:
 - Contact info that's hard to isolate (e.g. buried mid-paragraph instead
   of at the top)
 - Extremely short or sparse content that suggests missing sections
+- Weak bullet points: no action verbs, no numbers or measurable results
+
+Be strict and specific. Only report problems that are actually present in
+the text, and do not invent problems. Rate each issue's severity honestly:
+"high" for something that would break parsing or remove a whole section,
+"medium" for something that could confuse a parser, "low" for polish.
 
 Return ONLY a JSON object with this exact shape:
 {{
-  "score": <integer 0-100, ATS-friendliness score, 100 = perfectly clean>,
+  "score": 0,
   "issues": [
     {{
       "category": "<one of: formatting, parsing, section>",
@@ -59,9 +69,9 @@ Return ONLY a JSON object with this exact shape:
   ]
 }}
 
-If the resume looks clean, return a high score, an empty "issues" array,
-and one or two positive/maintenance suggestions rather than inventing
-problems.
+Always set "score" to 0; it is calculated separately and your value is
+ignored. If the resume has no real problems, return an empty "issues"
+array and one or two maintenance suggestions.
 
 RESUME TEXT:
 \"\"\"

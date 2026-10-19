@@ -31,7 +31,7 @@ export default function Signup() {
     setSubmitting(true);
     try {
       await signup({ name, email, password });
-      navigate("/upload");
+      navigate("/dashboard");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -43,7 +43,7 @@ export default function Signup() {
     setError("");
     try {
       await loginWithGoogle(credentialResponse.credential);
-      navigate("/upload");
+      navigate("/dashboard");
     } catch (err) {
       setError(err.message);
     }

@@ -1,0 +1,146 @@
+/* Dashboard page. Shared styles (panel, btn, tag, hx-*) come from the other pages' CSS. */
+
+/* the four number cards at the top */
+.dx-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+.dx-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 1rem 1.1rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.dx-stat-label {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+.dx-stat-value {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+.dx-stat-value .hx-delta,
+.dx-stat-value .hx-muted {
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.dx-stat-hint {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* recent analyses list */
+.dx-recent {
+  display: flex;
+  flex-direction: column;
+}
+.dx-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--line);
+}
+.dx-row:first-child {
+  border-top: none;
+}
+.dx-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+.dx-row-title {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dx-row-scores {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* quick action buttons */
+.dx-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+/* ---------- phones and small tablets ---------- */
+@media (max-width: 768px) {
+  /* number cards: two per row, a bit tighter */
+  .dx-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+  }
+  .dx-stat {
+    padding: 0.8rem 0.85rem;
+  }
+  .dx-stat-value {
+    font-size: 1.6rem;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.5rem;
+  }
+  .dx-stat-hint {
+    white-space: normal;
+  }
+
+  /* recent analyses: title on top, scores underneath */
+  .dx-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .dx-row-main {
+    width: 100%;
+  }
+  .dx-row-title {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .dx-row-scores {
+    justify-content: flex-start;
+    gap: 0.4rem 1rem;
+    white-space: normal;
+  }
+
+  /* quick actions: full-width buttons that are easy to tap */
+  .dx-actions {
+    flex-direction: column;
+  }
+  .dx-actions > * {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* very small phones: number cards stack one per row */
+@media (max-width: 380px) {
+  .dx-stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
