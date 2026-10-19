@@ -61,7 +61,6 @@ p { margin: 0 0 1em; color: var(--ink-soft); }
 .panel + .panel { margin-top: 1.2rem; }
 
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
-@media (max-width: 720px) { .grid-2 { grid-template-columns: 1fr; } }
 
 .tag {
   display: inline-flex; align-items: center; gap: .4em;
@@ -103,3 +102,32 @@ p { margin: 0 0 1em; color: var(--ink-soft); }
 .callout a { color: inherit; text-decoration: underline; }
 
 footer.note { margin-top: 3rem; padding-top: 1.2rem; border-top: 1px solid var(--line); font-size: .78rem; color: var(--ink-soft); }
+
+/* ---------- phones and small tablets ---------- */
+@media (max-width: 768px) {
+  .grid-2 { grid-template-columns: minmax(0, 1fr); }
+
+  /* page header: title on top, buttons underneath */
+  .page-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.4rem;
+    padding-bottom: 1rem;
+  }
+  .page-head > div { min-width: 0; }
+
+  .panel { padding: 1.1rem 1rem; }
+
+  /* score block: number and text can wrap instead of squeezing */
+  .score-block { flex-wrap: wrap; gap: .8rem 1.2rem; }
+  .score-num { font-size: 2.6rem; }
+
+  /* list rows: label and tag wrap onto two lines when there is no room */
+  .row-item { flex-wrap: wrap; gap: .4rem 1rem; }
+  .row-item > * { min-width: 0; }
+
+  .agent-strip { margin-bottom: 1.2rem; }
+
+  footer.note { margin-top: 2rem; }
+}

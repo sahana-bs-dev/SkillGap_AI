@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
-import AgentStatusIndicator from "../../components/AgentStatus/AgentStatusIndicator";
+import AnalysisLoader from "../../components/AnalysisLoader";
+import EmptyState from "../../components/EmptyState/EmptyState";
 import Sidebar from "../../components/Layout/Sidebar";
 import "../../components/Layout/Sidebar.css";
 import "../MatchReport/MatchReport.css"; // shared panel / row-list styles
@@ -9,6 +10,13 @@ import "./ImprovementLoop.css";
 
 // Route: expects the same state the rewrite page already has.
 //   navigate("/improvement-loop", { state: { resumeText, matchingOutput, gaps } })
+
+const LOADER_MESSAGES = [
+  "Rewriting your resume",
+  "Scoring the new version",
+  "Checking what is still missing",
+  "Keeping only the changes that help",
+];
 
 /* ---------- helpers ---------- */
 
@@ -110,7 +118,7 @@ function ScoreChart({ scores, iterations }) {
     );
     labels.push(
       <text key={"label-" + i} x={x} y={height - 14} className="loop-axis loop-axis-x">
-        {"Round " + iterations[i].iteration + (iterations[i].accepted === false ? " \u2715" : "")}
+        {"Round " + iterations[i].iteration + (iterations[i].accepted === false ? " ✕" : "")}
       </text>
     );
   }
@@ -205,32 +213,29 @@ export default function ImprovementLoop() {
   const matchingOutput = state?.matchingOutput;
   const gaps = state?.gaps;
 
-  const [status, setStatus] = useState("loading"); // 'loading' | 'done' | 'error'
+  // 'empty' = nothing to work on yet, 'loading' | 'done' | 'error' as before
+  const [status, setStatus] = useState("loading");
   const [result, setResult] = useState(null);
-  const [errorMsg, setErrorMsg] = useState("");
 
   // Stops React dev mode from starting the loop twice
   const hasStarted = useRef(false);
 
   async function startLoop() {
     setStatus("loading");
-    setErrorMsg("");
     try {
       const data = await runImprovementLoop(resumeText, matchingOutput, gaps);
       setResult(data);
       setStatus("done");
     } catch (err) {
-      setErrorMsg(err.message);
+      // The real error stays in the console for you; the user sees a friendly message.
+      console.error("Improvement loop failed:", err);
       setStatus("error");
     }
   }
 
   useEffect(() => {
     if (!resumeText || !matchingOutput || !gaps) {
-      setStatus("error");
-      setErrorMsg(
-        "Missing resume text, match report, or skill gaps. Start the loop from the Resume rewrite page."
-      );
+      setStatus("empty");
       return;
     }
     if (hasStarted.current) return;
@@ -262,20 +267,6 @@ export default function ImprovementLoop() {
     }
   }
 
-  const agents = [
-    { name: "Supervisor Agent", status: "done", label: "routed" },
-    {
-      name: "Matching Agent",
-      status: status === "done" ? "done" : status === "loading" ? "working" : "idle",
-      label: status === "done" ? "complete" : status === "loading" ? "re-scoring…" : "not run",
-    },
-    {
-      name: "Resume Rewrite Agent",
-      status: status === "done" ? "done" : status === "loading" ? "working" : "idle",
-      label: status === "done" ? "complete" : status === "loading" ? "rewriting…" : "not run",
-    },
-  ];
-
   return (
     <div className="shell">
       <Sidebar />
@@ -286,36 +277,51 @@ export default function ImprovementLoop() {
             <h1>Improvement loop</h1>
             <p>Each round rewrites the resume, then scores it against the job description again</p>
           </div>
-          <div style={{ display: "flex", gap: "0.8rem" }}>
-            <Link to="/resume-rewrite" state={state} className="btn secondary" style={{ textDecoration: "none" }}>
-              Back to rewrite
-            </Link>
-            {status !== "loading" && resumeText ? (
-              <button onClick={startLoop}>Run again</button>
-            ) : null}
-          </div>
+          {status !== "empty" ? (
+            <div style={{ display: "flex", gap: "0.8rem" }}>
+              <Link to="/resume-rewrite" state={state} className="btn secondary" style={{ textDecoration: "none" }}>
+                Back to rewrite
+              </Link>
+              {status !== "loading" && resumeText ? (
+                <button onClick={startLoop}>Run again</button>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
-        <AgentStatusIndicator agents={agents} />
-
         {status === "loading" && (
-          <div className="panel">
-            <p>
-              Running the loop. Every round rewrites the resume, re-scores it and re-checks the gaps, so this can take a few minutes. Keep this tab open.
-            </p>
-          </div>
+          <AnalysisLoader
+            title="Improving your resume"
+            messages={LOADER_MESSAGES}
+            hint="This can take a few minutes. Please keep this tab open."
+          />
+        )}
+
+        {status === "empty" && (
+          <EmptyState
+            title="Nothing to improve yet"
+            message="Run an analysis and rewrite your resume first. You can start the improvement loop from the Resume rewrite page."
+            actionLabel="Start a new analysis"
+            actionTo="/upload"
+          />
         )}
 
         {status === "error" && (
-          <div className="panel">
-            <p style={{ color: "var(--gap)" }}>{errorMsg}</p>
-          </div>
+          <EmptyState
+            title="The loop could not finish"
+            message="Something went wrong while improving your resume. Please try again."
+            actionLabel="Try again"
+            onAction={startLoop}
+          />
         )}
 
         {status === "done" && iterations.length === 0 && (
-          <div className="panel">
-            <p>The loop finished but returned no rounds. Try running it again.</p>
-          </div>
+          <EmptyState
+            title="No rounds were completed"
+            message="The loop finished without improving your resume. Try running it again."
+            actionLabel="Run again"
+            onAction={startLoop}
+          />
         )}
 
         {hasResult && (
@@ -386,7 +392,7 @@ export default function ImprovementLoop() {
                   </h4>
                   <pre className="loop-pane-text">
                     {getFinalText(result, iterations) ||
-                      "The loop response did not include the final text. Ask the backend to return final_resume, or load it from the versions route."}
+                      "The final text is not available for this run. Open Resume rewrite to see your saved versions."}
                   </pre>
                 </div>
               </div>

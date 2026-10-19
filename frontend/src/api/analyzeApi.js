@@ -2,11 +2,24 @@
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
+function getToken() {
+  return localStorage.getItem("token") || localStorage.getItem("access_token") || "";
+}
+
+// /analyze/ats and /analyze/match require login (results are saved to history),
+// so every call here sends the token.
+function authHeaders() {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${getToken()}`,
+  };
+}
+
 // Resume only -> ATS Agent. Response: { score, issues, suggestions }
 export async function runATSAnalysis(resumeText) {
   const res = await fetch(`${API_BASE}/analyze/ats`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders(),
     body: JSON.stringify({ resume_text: resumeText }),
   });
 
@@ -23,7 +36,7 @@ export async function runATSAnalysis(resumeText) {
 export async function runMatchAnalysis(resumeText, jdText) {
   const res = await fetch(`${API_BASE}/analyze/match`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders(),
     body: JSON.stringify({ resume_text: resumeText, jd_text: jdText }),
   });
 
@@ -39,7 +52,7 @@ export async function runMatchAnalysis(resumeText, jdText) {
 export async function runSkillGapAnalysis(matchingOutput) {
   const res = await fetch(`${API_BASE}/analyze/skill-gap`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders(),
     body: JSON.stringify({ matching_output: matchingOutput }),
   });
   if (!res.ok) {
@@ -52,7 +65,7 @@ export async function runSkillGapAnalysis(matchingOutput) {
 export async function runLearningPlan(gaps) {
   const res = await fetch(`${API_BASE}/analyze/learning`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders(),
     body: JSON.stringify({ gaps }),
   });
   if (!res.ok) {

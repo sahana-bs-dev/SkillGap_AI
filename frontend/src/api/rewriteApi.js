@@ -15,18 +15,27 @@ function getToken() {
   );
 }
 
-export async function runResumeRewrite(resumeText, matchingOutput, gaps) {
+// Job rewrite:  runResumeRewrite(resumeText, matchingOutput, gaps)
+// ATS fix:      runResumeRewrite(resumeText, null, null, atsReport)
+//               (atsReport is the { score, issues, suggestions } the ATS report returned)
+export async function runResumeRewrite(resumeText, matchingOutput, gaps, atsReport) {
+  const body = { resume_text: resumeText };
+
+  if (matchingOutput) {
+    body.matching_output = matchingOutput;
+    body.gaps = gaps || [];
+  } else if (atsReport) {
+    body.ats_issues = atsReport.issues || [];
+    body.ats_suggestions = atsReport.suggestions || [];
+  }
+
   const res = await fetch(`${API_BASE}${API_PATH}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${getToken()}`,
     },
-    body: JSON.stringify({
-      resume_text: resumeText,
-      matching_output: matchingOutput,
-      gaps: gaps,
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!res.ok) {

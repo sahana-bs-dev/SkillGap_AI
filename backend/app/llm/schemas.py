@@ -130,8 +130,13 @@ class LearningOutput(BaseModel):
 
 class ResumeRewriteInput(BaseModel):
     resume_text: str
-    matching_output: MatchingOutput
-    gaps: list[SkillGapItem]
+    # Job mode: tailor the resume to a job (match result + skill gaps).
+    # ATS-fix mode: matching_output is None and the ATS report's issues and
+    # suggestions drive the rewrite instead.
+    matching_output: Optional[MatchingOutput] = None
+    gaps: list[SkillGapItem] = []
+    ats_issues: list[ATSIssue] = []
+    ats_suggestions: list[str] = []
 
 
 class ResumeRewriteOutput(BaseModel):

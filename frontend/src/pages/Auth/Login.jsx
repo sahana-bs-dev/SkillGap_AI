@@ -19,7 +19,7 @@ export default function Login() {
     setSubmitting(true);
     try {
       await login({ email, password });
-      navigate("/upload");
+      navigate("/dashboard");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -31,7 +31,7 @@ export default function Login() {
     setError("");
     try {
       await loginWithGoogle(credentialResponse.credential);
-      navigate("/upload");
+      navigate("/dashboard");
     } catch (err) {
       setError(err.message);
     }

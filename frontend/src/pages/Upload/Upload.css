@@ -2,7 +2,7 @@
    Shared classes (.panel, .grid-2, .dropzone, .toggle-pair, .field,
    textarea, .callout, .page-head) come from src/index.css. */
 
-   
+
 .upload-page {
   max-width: var(--max);
   padding: 1.5%;
@@ -45,4 +45,40 @@
   font-size: .82rem;
   max-height: 320px;
   overflow-y: auto;
+}
+
+/* ---------- phones and small tablets ---------- */
+@media (max-width: 768px) {
+  /* even space on the left and right so nothing hugs the screen edge */
+  .upload-page {
+    padding: 1rem;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* resume box and job description box: one under the other */
+  .upload-page .grid-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* analyze button keeps its normal small size, hint sits underneath */
+  .submit-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+  .submit-row button,
+  .submit-row .btn {
+    width: auto;
+    align-self: flex-start;
+  }
+
+  .preview-panel {
+    margin-top: 1.2rem;
+  }
+  .parsed-text {
+    max-height: 240px;
+    font-size: .78rem;
+    padding: .8em;
+  }
 }

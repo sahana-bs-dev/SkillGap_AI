@@ -4,12 +4,15 @@ Agentic improvement loop controller (Phase 8).
 One round = Resume Rewrite -> re-run Matching -> log the score -> decide.
 
 What it guarantees:
-  * Round 0 is the ORIGINAL resume's score (taken from the match you pass in).
+  * Round 0 is the ORIGINAL resume's score, computed with the same code-based
+    scoring as every later round, so rounds are always comparable.
   * Every rewritten resume is checked against the ORIGINAL resume (not the
     previous round) with the Rewrite Agent's own no-fabrication guard, so
     invented content cannot slowly drift in across rounds.
   * The final resume is the BEST-scoring clean round, never just the last one.
     If no round beats the original, the original is returned unchanged.
+  * The Matching agent only decides which skills have evidence. The score is
+    computed in code by apply_match_score().
 
 Stopping rules (first one that is true wins):
   1. no gaps remain
@@ -38,6 +41,7 @@ from app.llm.schemas import (
     SkillGapItem,
 )
 from app.orchestration.pipeline import AgentRegistry
+from app.utils.match_scoring import apply_match_score
 
 DEFAULT_MAX_ROUNDS = 3
 MIN_SCORE_GAIN = 3  # a round that gains fewer points than this counts as converged
@@ -62,11 +66,11 @@ class LoopResult(LoopState):
 
 def jd_from_matching(matching_output: MatchingOutput) -> JDAnalysisOutput:
     """
-    Rebuild a JD skill list from a Matching result (matched + missing skills).
+    Fallback only: rebuild a JD skill list from a Matching result (matched +
+    missing skills) when the real JD analysis cannot be found in the cache.
 
-    The loop request does not carry the JD text, and re-using the same skill
-    list every round keeps scores comparable between rounds (no JD-analysis
-    variance), while saving one model call per round.
+    Every skill is treated as required here, so the tiers (required /
+    preferred / implicit) are lost. The route prefers the cached JD analysis.
     """
     skills: list[str] = []
     for item in matching_output.matched_skills:
@@ -92,6 +96,9 @@ class ImprovementLoopController:
         max_rounds: int = DEFAULT_MAX_ROUNDS,
     ) -> LoopResult:
         max_rounds = max(1, min(int(max_rounds), MAX_LOOP_ITERATIONS))
+
+        # Score round 0 with the same code-based scoring as every later round.
+        matching_output = apply_match_score(matching_output, jd_analysis)
 
         original_resume = resume_text
         original_matching = matching_output
@@ -157,7 +164,8 @@ class ImprovementLoopController:
             )
             if not rematch.success:
                 return finish(f"Round {round_no}: re-scoring failed ({rematch.error}). Kept the best version so far.")
-            new_matching: MatchingOutput = rematch.data
+            # The model only says which skills have evidence; the score is computed here.
+            new_matching: MatchingOutput = apply_match_score(rematch.data, jd_analysis)
 
             previous_score = current_matching.score
             gain = new_matching.score - previous_score

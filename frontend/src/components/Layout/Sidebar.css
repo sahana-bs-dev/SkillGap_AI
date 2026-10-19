@@ -9,16 +9,19 @@
   position: sticky;
   top: 0;
   height: 100vh;
-  width: 220px;
+  width: 100%;          /* the width now comes from the .shell column below */
+  min-width: 0;
 }
 .rail .brand{
   font-family: var(--serif);
   font-size: 1.3rem;
   font-weight: 600;
-  margin-bottom: .1rem;
   display: flex;
   align-items: baseline;
   gap: .4em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .rail .brand small{
   font-family: var(--mono);
@@ -33,6 +36,33 @@
   margin-bottom: 2rem;
   max-width: 20ch;
 }
+
+/* top row: brand + open/close button */
+.rail-top{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: 1.6rem;
+}
+.rail-toggle{
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.rail-toggle:hover{ background: var(--panel-alt); color: var(--ink); }
+.rail-toggle:focus-visible{ outline: 2px solid var(--gold-deep); outline-offset: 2px; }
+
 .rail nav{ display: flex; flex-direction: column; gap: .15rem; }
 .rail nav a{
   text-decoration: none;
@@ -44,6 +74,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: .5rem;
+}
+.rail nav a > span:first-child{
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .rail nav a:hover{ background: var(--panel-alt); color: var(--ink); }
 .rail nav a.active{
@@ -57,6 +94,8 @@
   font-size: .68rem;
   color: var(--ink-soft);
 }
+
+/* footer: user info on top, log out button below */
 .rail .rail-foot{
   position: absolute;
   bottom: 1.6rem;
@@ -66,11 +105,77 @@
   color: var(--ink-soft);
   border-top: 1px solid var(--line);
   padding-top: .9rem;
+  display: flex;
+  flex-direction: column;
+  gap: .7rem;
 }
 
+/* log out: red outline so it is easy to spot, fills in on hover */
+.rail-logout{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .55em .6em;
+  border: 1px solid var(--gap);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--gap);
+  font-family: var(--sans);
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.rail-logout .logout-icon{
+  flex-shrink: 0;
+}
+.rail-logout:hover{
+  background: var(--gap);
+  color: #fff;
+}
+.rail-logout:focus-visible{ outline: 2px solid var(--gold-deep); outline-offset: 2px; }
+
+/* drag handle on the right edge of the sidebar */
+.rail-resize{
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+  background: transparent;
+}
+.rail-resize:hover,
+.rail-resize:focus-visible,
+.rail.resizing .rail-resize{
+  background: var(--gold-deep);
+  opacity: .5;
+  outline: none;
+}
+.rail.resizing{ user-select: none; }
+
+/* closed: a thin strip with just the toggle, the avatar and the log out icon */
+.rail.collapsed{ padding: 1.2rem .5rem; }
+.rail.collapsed .rail-top{ justify-content: center; margin-bottom: 0; }
+.rail.collapsed .rail-foot{
+  left: .5rem;
+  right: .5rem;
+  align-items: center;
+}
+.rail.collapsed .user-block{ justify-content: center; }
+.rail.collapsed .rail-logout{
+  width: 34px;
+  height: 34px;
+  padding: 0;
+}
+
+/* the first column follows the sidebar width (set by Sidebar.jsx) */
 .shell{
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: var(--rail-width, 220px) 1fr;
   min-height: 100vh;
 }
 
@@ -85,7 +190,7 @@
   height: 30px;
   min-width: 34px;
   border-radius: 50%;
-  background: #10022c; 
+  background: #10022c;
   color: #fff;
   font-family: var(--sans);
   font-weight: 600;
@@ -102,4 +207,172 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ---------- phones and small tablets ---------- */
+/* Keep the 768px here in sync with MOBILE_QUERY in Sidebar.jsx. */
+@media (max-width: 768px){
+  /* one column, with room for the top bar and the bottom tab bar */
+  .shell{
+    display: block;
+    padding-top: 56px;
+    padding-bottom: calc(68px + env(safe-area-inset-bottom));
+  }
+
+  /* top bar: just the brand */
+  .mobile-top{
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    z-index: 50;
+  }
+  .mobile-top .brand{
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    font-weight: 600;
+  }
+
+  /* bottom tab bar */
+  .mobile-tabs{
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    background: var(--panel);
+    border-top: 1px solid var(--line);
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 50;
+  }
+  .mobile-tabs a,
+  .mobile-tabs button{
+    flex: 1;
+    min-width: 0;
+    height: 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .2rem;
+    padding: .4rem .2rem;
+    border: 0;
+    border-top: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: var(--ink-soft);
+    font-family: var(--sans);
+    font-size: .68rem;
+    font-weight: 500;
+    line-height: 1.1;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .mobile-tabs a span,
+  .mobile-tabs button span{
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mobile-tabs a:hover,
+  .mobile-tabs button:hover{
+    background: transparent;
+    color: var(--ink);
+  }
+  .mobile-tabs a.active,
+  .mobile-tabs button.active{
+    color: var(--gold-deep);
+    font-weight: 600;
+    border-top-color: var(--gold-deep);
+    background: var(--panel-alt);
+  }
+  .mobile-tabs a:focus-visible,
+  .mobile-tabs button:focus-visible{
+    outline: 2px solid var(--gold-deep);
+    outline-offset: -2px;
+  }
+  .tab-icon{ flex-shrink: 0; }
+
+  /* dark layer behind the "More" sheet; tap it to close */
+  .mobile-backdrop{
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 22, 31, .35);
+    z-index: 44;
+  }
+
+  /* "More" sheet: slides up above the tab bar */
+  .mobile-sheet{
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(64px + env(safe-area-inset-bottom));
+    max-height: 70vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--panel);
+    border-top: 1px solid var(--line);
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 -8px 24px rgba(20, 22, 31, .12);
+    z-index: 45;
+  }
+  .mobile-sheet-links{
+    display: flex;
+    flex-direction: column;
+    gap: .15rem;
+  }
+  .mobile-sheet-links a{
+    display: block;
+    padding: .85em .8em;
+    border-left: 2px solid transparent;
+    border-radius: var(--radius);
+    color: var(--ink-soft);
+    font-size: 1rem;
+    text-decoration: none;
+  }
+  .mobile-sheet-links a.active{
+    color: var(--ink);
+    font-weight: 600;
+    border-left-color: var(--gold-deep);
+    background: var(--panel-alt);
+  }
+  .mobile-sheet-foot{
+    display: flex;
+    flex-direction: column;
+    gap: .8rem;
+    padding-top: .9rem;
+    border-top: 1px solid var(--line);
+  }
+
+  /* page content: tighter padding, no sideways overflow */
+  .shell > .route{
+    min-width: 0;
+    padding: 1.1rem !important;   /* !important: some pages set padding inline */
+  }
+  .shell > .route h1{
+    font-size: 1.9rem;
+    line-height: 1.15;
+  }
+  .shell > .route img,
+  .shell > .route svg{
+    max-width: 100%;
+  }
+  .shell > .route pre{
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .loop-chart{
+    width: 100%;
+    height: auto;
+  }
 }

@@ -14,10 +14,11 @@ import ImprovementLoop from "./pages/ImprovementLoop/ImprovementLoop";
 import History from "./pages/History/History";
 import Compare from "./pages/Compare/Compare";
 
+// "/" and any unknown address: logged-in users land on the dashboard.
 function RootRedirect() {
   const { user, loading } = useAuth();
   if (loading) return null;
-  return <Navigate to={user ? "/upload" : "/login"} replace />;
+  return <Navigate to={user ? "/dashboard" : "/login"} replace />;
 }
 
 export default function App() {
