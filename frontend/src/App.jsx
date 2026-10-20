@@ -10,7 +10,6 @@ import ATSReport from "./pages/ATSReport/ATSReport";
 import MatchReport from "./pages/MatchReport/MatchReport";
 import SkillGapPlan from "./pages/SkillGapPlan/SkillGapPlan";
 import ResumeRewrite from "./pages/ResumeRewrite/ResumeRewrite";
-import ImprovementLoop from "./pages/ImprovementLoop/ImprovementLoop";
 import History from "./pages/History/History";
 import Compare from "./pages/Compare/Compare";
 
@@ -78,15 +77,6 @@ export default function App() {
         element={
           <ProtectedRoute>
             <ResumeRewrite />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/improvement-loop"
-        element={
-          <ProtectedRoute>
-            <ImprovementLoop />
           </ProtectedRoute>
         }
       />

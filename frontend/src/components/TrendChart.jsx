@@ -8,6 +8,9 @@ import "./TrendChart.css";
 //   />
 //
 // A null/undefined value is skipped: the line simply joins the points on either side.
+// Optional subLabels (same length as labels): a second, smaller line under each x label, for example the time.
+// Optional pointKinds (same length as labels): "rewrite" draws a filled dot (a score taken after a
+// resume rewrite), anything else a hollow dot. A short legend explains the two when both appear.
 
 const WIDTH = 720;
 const PAD_LEFT = 38;
@@ -20,10 +23,11 @@ function isNumber(v) {
   return typeof v === "number" && !isNaN(v);
 }
 
-export default function TrendChart({ labels, series, height = 260, ariaLabel }) {
+export default function TrendChart({ labels, series, height = 260, ariaLabel, pointKinds, subLabels }) {
   const count = labels.length;
   const innerW = WIDTH - PAD_LEFT - PAD_RIGHT;
-  const innerH = height - PAD_TOP - PAD_BOTTOM;
+  const padBottom = subLabels ? PAD_BOTTOM + 14 : PAD_BOTTOM;
+  const innerH = height - PAD_TOP - padBottom;
 
   const x = (i) => PAD_LEFT + (count <= 1 ? innerW / 2 : (i * innerW) / (count - 1));
   const y = (v) => PAD_TOP + innerH - (Math.max(0, Math.min(100, v)) / 100) * innerH;
@@ -47,9 +51,16 @@ export default function TrendChart({ labels, series, height = 260, ariaLabel }) 
   for (let i = 0; i < count; i++) {
     if (i % step !== 0 && i !== count - 1) continue;
     xLabels.push(
-      <text key={"x-" + i} x={x(i)} y={height - 10} textAnchor="middle" className="tc-axis">
-        {labels[i]}
-      </text>
+      <g key={"x-" + i}>
+        <text x={x(i)} y={height - (subLabels ? 24 : 10)} textAnchor="middle" className="tc-axis">
+          {labels[i]}
+        </text>
+        {subLabels && subLabels[i] ? (
+          <text x={x(i)} y={height - 9} textAnchor="middle" className="tc-axis" style={{ fontSize: 10, opacity: 0.75 }}>
+            {subLabels[i]}
+          </text>
+        ) : null}
+      </g>
     );
   }
 
@@ -74,8 +85,14 @@ export default function TrendChart({ labels, series, height = 260, ariaLabel }) 
 
       dots.push(
         <g key={"dot-" + s + "-" + i}>
-          <circle cx={x(i)} cy={y(v)} r="4.5" className="tc-dot" style={{ stroke: one.color }}>
-            <title>{one.name + ", " + labels[i] + ": " + v}</title>
+          <circle
+            cx={x(i)}
+            cy={y(v)}
+            r="4.5"
+            className="tc-dot"
+            style={pointKinds && pointKinds[i] === "rewrite" ? { stroke: one.color, fill: one.color } : { stroke: one.color }}
+          >
+            <title>{one.name + ", " + labels[i] + (subLabels && subLabels[i] ? " (" + subLabels[i] + ")" : "") + (pointKinds && pointKinds[i] === "rewrite" ? " (after rewrite)" : "") + ": " + v}</title>
           </circle>
           {showValues ? (
             <text x={x(i)} y={above ? y(v) - 10 : y(v) + 17} textAnchor="middle" className="tc-value" style={{ fill: one.color }}>
@@ -111,7 +128,14 @@ export default function TrendChart({ labels, series, height = 260, ariaLabel }) 
         {lines}
         {xLabels}
       </svg>
-      {series.length > 1 || (series[0] && series[0].name) ? <div className="tc-legend">{legend}</div> : null}
+      {series.length > 1 || (series[0] && series[0].name) ? (
+        <div className="tc-legend">
+          {legend}
+          {pointKinds && pointKinds.includes("rewrite") ? (
+            <span className="tc-legend-item">Hollow dot = analysis · Filled dot = after a rewrite</span>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }

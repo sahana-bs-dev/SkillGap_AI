@@ -138,7 +138,7 @@ function TabIcon({ name }) {
 }
 
 // Pages that live inside the "More" sheet on phones.
-const MORE_PATHS = ["/ats-report", "/resume-rewrite", "/improvement-loop", "/history", "/compare"];
+const MORE_PATHS = ["/ats-report", "/resume-rewrite", "/history", "/compare"];
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
@@ -311,7 +311,6 @@ export default function Sidebar() {
               <div className="mobile-sheet-links">
                 {sheetLink("/ats-report", "ATS report")}
                 {sheetLink("/resume-rewrite", "Resume rewrite")}
-                {sheetLink("/improvement-loop", "Improvement loop")}
                 {sheetLink("/history", "History")}
                 {sheetLink("/history", "Compare", "/compare")}
               </div>
@@ -383,7 +382,6 @@ export default function Sidebar() {
           {navLink("/match-report", "Match report", "02")}
           {navLink("/skill-gap", "Skill gap", "03")}
           {navLink("/resume-rewrite", "Resume rewrite", "05")}
-          {navLink("/improvement-loop", "Improvement loop", "06")}
           {navLink("/history", "History")}
           {navLink("/history", "Compare", undefined, "/compare")}
         </nav>

@@ -5,6 +5,10 @@ Rewrites the resume WITHOUT inventing anything. Two modes:
   - Job mode (matching_output given): tailor the resume to the target JD.
   - ATS-fix mode (no matching_output): fix the problems an ATS report found,
     with no job to tailor to.
+Job mode can also carry learned_skills: skills the person finished in their
+learning plan (all steps ticked), each with its practice project. Those are the
+one exception to "add nothing": the skill and one project bullet are added, using
+only the project text given. The guard treats that text as part of the source.
 Two layers of protection against fabrication:
   1. The prompt forbids adding facts (and, in job mode, lists the missing
      skills as off-limits).
@@ -88,7 +92,14 @@ class ResumeRewriteAgent(BaseAgent[ResumeRewriteInput, ResumeRewriteOutput]):
         matched = "\n".join(
             f"- {m.skill}: {m.evidence}" for m in input_data.matching_output.matched_skills
         ) or "- (none)"
-        missing = ", ".join(input_data.matching_output.missing_skills) or "(none)"
+        learned = input_data.learned_skills
+        learned_keys = {_squash(l.skill) for l in learned}
+        # A skill the person has now learned is no longer "missing".
+        still_missing = [
+            m for m in input_data.matching_output.missing_skills if _squash(m) not in learned_keys
+        ]
+        missing = ", ".join(still_missing) or "(none)"
+        learned_block = self._learned_block(learned)
 
         return f"""You are a resume editor. Rewrite the resume below so it reads stronger for the target job, using ONLY facts already in the resume.
 
@@ -106,7 +117,7 @@ STRICT RULES (never break these):
 
 MATCHED SKILLS (safe to emphasise, with evidence from the resume):
 {matched}
-
+{learned_block}
 MISSING SKILLS (must NOT be added if absent from the original; keep them if already present): {missing}
 {feedback_block}
 ORIGINAL RESUME:
@@ -120,6 +131,23 @@ Return ONLY this JSON object:
   "diff_summary": ["Section: what you changed and why", "..."],
   "warnings": ["places where the resume lacks information you could not improve, e.g. 'Project X has no measurable result; add a real one yourself'"]
 }}"""
+
+    @staticmethod
+    def _learned_block(learned) -> str:
+        if not learned:
+            return ""
+        lines = "\n".join(
+            f"- {l.skill}" + (f" | practice project: {l.project}" if l.project else " | (no project text given)")
+            for l in learned
+        )
+        return f"""
+LEARNED SKILLS (this is the ONE exception to rules 1, 2 and 3). The person finished a learning plan for each skill below: they studied it and built the practice project shown. For EACH learned skill:
+a. Add the skill name to the Skills section (create a Skills section if the resume has none).
+b. Add ONE short bullet to the Projects section (create a Projects section if the resume has none). Start it with "Practice project:" and describe the project using ONLY the words of the project text given below. If no project text is given, add only the skill name and no bullet.
+c. Do NOT claim a job, employer, team, users, results, numbers, or any tool or technology that is not named in the project text or in the original resume. Do NOT use words like "experienced", "proficient", "expert" or "years": the person has learned this skill and built one practice project, nothing more.
+d. Mention every skill and bullet you added in "diff_summary".
+{lines}
+"""
 
     @staticmethod
     def _build_ats_prompt(input_data: ResumeRewriteInput, banned_verbs: str, feedback_block: str) -> str:
@@ -166,7 +194,10 @@ Return ONLY this JSON object:
 
     @staticmethod
     def _find_violations(input_data: ResumeRewriteInput, rewritten: str) -> list[str]:
+        # The resume plus the learned skills and their project text: the only facts the rewrite may use.
         original = input_data.resume_text
+        for l in input_data.learned_skills:
+            original += f"\n{l.skill}\n{l.project or ''}"
         original_squashed = _squash(original)
         found: list[str] = []
 
@@ -211,6 +242,18 @@ Return ONLY this JSON object:
 
         return list(dict.fromkeys(found))
 
+    @staticmethod
+    def _add_learned_warnings(input_data: ResumeRewriteInput, result: AgentResult[ResumeRewriteOutput]) -> None:
+        """Warn when a learned skill the person asked for did not make it into the rewrite."""
+        rewritten = result.data.rewritten_text
+        rewritten_squashed = _squash(rewritten)
+        for l in input_data.learned_skills:
+            if _has_term(l.skill, rewritten) or _squash(l.skill) in rewritten_squashed:
+                continue
+            result.data.warnings.append(
+                f"Learned skill not added: {l.skill} is missing from the rewrite. Add it to your Skills section yourself."
+            )
+
     # ---------- run with guard ----------
 
     def run(self, input_data: ResumeRewriteInput) -> AgentResult[ResumeRewriteOutput]:
@@ -225,8 +268,10 @@ Return ONLY this JSON object:
                 self.llm_client, self.model, _feedback=", ".join(violations)
             ).run(input_data)
             if retry.success:
+                self._add_learned_warnings(input_data, retry)
                 return retry  # the retry already attached its own warnings
 
         for v in violations:
             result.data.warnings.append(f"Not found in your original resume: {v}")
+        self._add_learned_warnings(input_data, result)
         return result

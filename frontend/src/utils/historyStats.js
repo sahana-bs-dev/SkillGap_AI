@@ -134,24 +134,3 @@ export function describeAnalysisChange(match, skills, relation) {
   if (!skills.gained.length && !skills.lost.length) parts.push("No skills moved between matched and missing.");
   return parts.join(" ");
 }
-
-/* ---------- improvement loops ---------- */
-
-export function loopSummary(run) {
-  const iterations = (run && run.iterations ? run.iterations : []).slice().sort(function (a, b) { return a.iteration - b.iteration; });
-  if (!iterations.length) return { iterations: [], start: null, best: null, change: null, rounds: 0 };
-
-  const start = iterations[0].score;
-  let best = start;
-  const wanted = run.best_iteration;
-  let found = false;
-  for (let i = 0; i < iterations.length; i++) {
-    if (iterations[i].iteration === wanted) { best = iterations[i].score; found = true; }
-  }
-  if (!found) {
-    for (let i = 0; i < iterations.length; i++) {
-      if (iterations[i].accepted !== false && iterations[i].score > best) best = iterations[i].score;
-    }
-  }
-  return { iterations: iterations, start: start, best: best, change: scoreChange(start, best), rounds: iterations.length - 1 };
-}

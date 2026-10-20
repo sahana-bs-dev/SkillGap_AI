@@ -8,13 +8,13 @@ from app.parsing import routes as parsing_routes
 from app.auth import routes as auth_routes
 from app.routes import analyze
 from app.routes.resume import router as resume_router
-from app.routes.loop import router as loop_router
 from app.routes.history import router as history_router
+from app.routes.skill_plans import router as skill_plans_router
 app = FastAPI(title="SkillGap AI API")
 
 app.include_router(resume_router)
-app.include_router(loop_router)
 app.include_router(history_router)
+app.include_router(skill_plans_router)
 
 app.include_router(analyze.router)
 

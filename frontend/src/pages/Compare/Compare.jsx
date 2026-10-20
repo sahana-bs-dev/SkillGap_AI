@@ -2,11 +2,11 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Sidebar from "../../components/Layout/Sidebar";
 import "../../components/Layout/Sidebar.css";
-import TrendChart from "../../components/TrendChart";
-import { listAnalyses, listLoops } from "../../api/historyApi";
-import { getResumeVersion } from "../../api/rewriteApi";
+import { listAnalyses } from "../../api/historyApi";
+import { getResumeVersion, listResumeVersions } from "../../api/rewriteApi";
 import { buildSegments, diffStats, diffText } from "../../utils/textDiff";
 import { plainForDiff } from "../../utils/resumeFormat";
+import { latestRewriteFor } from "../../utils/scoreTimeline";
 import {
   byDateAsc,
   compareSkills,
@@ -15,20 +15,18 @@ import {
   formatDelta,
   jdRelation,
   jobLabel,
-  loopSummary,
   scoreChange,
 } from "../../utils/historyStats";
 import "../MatchReport/MatchReport.css"; // same page width as the other pages
 import "../History/History.css"; // shared History/Compare styles
 import "./Compare.css";
 
-// Route: /compare?type=analysis|loop|version&a=ID&b=ID
+// Route: /compare?type=analysis|version&a=ID&b=ID
 // The older item is always shown as "Earlier" and the newer one as "Later",
 // whichever order they were picked in.
 
 const TYPES = {
   analysis: "analyses",
-  loop: "improvement loop runs",
   version: "resume versions",
 };
 
@@ -38,13 +36,20 @@ async function loadComparison(type, a, b) {
     return { items: byDateAsc(pair), isSample: false };
   }
 
-  const res = type === "analysis" ? await listAnalyses() : await listLoops();
+  const res = await listAnalyses();
   const first = res.items.find((x) => x.id === a);
   const second = res.items.find((x) => x.id === b);
   if (!first || !second) {
     throw new Error("One of these items could not be found. It may have been deleted.");
   }
-  return { items: byDateAsc([first, second]), isSample: res.isSample };
+  // Scores taken after a resume rewrite live on the saved versions. If they cannot be loaded, compare without them.
+  let versions = [];
+  try {
+    versions = await listResumeVersions();
+  } catch (err) {
+    console.error("Could not load resume versions for the comparison:", err);
+  }
+  return { items: byDateAsc([first, second]), isSample: res.isSample, versions: versions };
 }
 
 /* ---------- small pieces ---------- */
@@ -97,7 +102,7 @@ function SegmentText({ segments }) {
 
 /* ---------- compare: analyses ---------- */
 
-function AnalysisCompare({ earlier, later }) {
+function AnalysisCompare({ earlier, later, versions }) {
   const relation = jdRelation(earlier, later);
   const match = scoreChange(earlier.match_score, later.match_score);
   const ats = scoreChange(earlier.ats_score, later.ats_score);
@@ -108,6 +113,20 @@ function AnalysisCompare({ earlier, later }) {
     { label: "Match score", change: match, from: earlier.match_score, to: later.match_score },
     { label: "ATS score", change: ats, from: earlier.ats_score, to: later.ats_score },
   ];
+
+  // The scores above come from the two analyses themselves. Rewriting your resume gives new scores,
+  // saved on the resume version, so they are compared separately here.
+  const earlierRewrite = latestRewriteFor(versions, earlier.id);
+  const laterRewrite = latestRewriteFor(versions, later.id);
+  const eS = earlierRewrite ? earlierRewrite.scores : null;
+  const lS = laterRewrite ? laterRewrite.scores : null;
+  const pick = (s, key) => (s && typeof s[key] === "number" ? s[key] : null);
+  // A side that was never rewritten still has its own analysis score, so it is the fair starting point.
+  const side = (s, analysis, afterKey, ownKey) => (pick(s, afterKey) !== null ? pick(s, afterKey) : pick(analysis, ownKey));
+  const afterRows = [
+    { label: "Match score", from: side(eS, earlier, "match_after", "match_score"), to: side(lS, later, "match_after", "match_score") },
+    { label: "ATS score", from: side(eS, earlier, "ats_after", "ats_score"), to: side(lS, later, "ats_after", "ats_score") },
+  ].map((r) => ({ ...r, change: scoreChange(r.from, r.to) }));
 
   return (
     <>
@@ -153,6 +172,47 @@ function AnalysisCompare({ earlier, later }) {
         </div>
       </div>
 
+      {(eS || lS) && (
+        <div className="panel" style={{ marginTop: "1.2rem" }}>
+          <h3>After rewriting your resume</h3>
+          <p className="desc">
+            The scores above come from each analysis itself. These are the scores of the newest rewrite made from each
+            analysis, so they show what your resume scored after you added skills and rewrote it. If one analysis was
+            never rewritten, its own score is used instead.
+          </p>
+          <div className="cx-pair">
+            {[
+              { a: earlier, s: eS, v: earlierRewrite, tag: "Earlier" },
+              { a: later, s: lS, v: laterRewrite, tag: "Later" },
+            ].map((x) => (
+              <div className="cx-side" key={x.a.id}>
+                <span className="cx-side-tag">{x.tag}</span>
+                <strong>{x.s ? "Version " + x.v.version_no : "No rewrite yet"}</strong>
+                <span className="hx-muted">
+                  {x.s
+                    ? formatDate(x.v.created_at) +
+                      (x.v.learned_skill_count > 0
+                        ? " · " + x.v.learned_skill_count + " learned " + (x.v.learned_skill_count === 1 ? "skill" : "skills") + " added"
+                        : "")
+                    : "Never rewritten, so its own scores are used"}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="cx-rows">
+            {afterRows.map((r) => (
+              <div className="cx-row" key={r.label}>
+                <span className="cx-row-label">{r.label}</span>
+                <span className="cx-row-values">
+                  {typeof r.from === "number" ? r.from : "–"} → {typeof r.to === "number" ? r.to : "–"}
+                </span>
+                <DeltaPill change={r.change} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="panel" style={{ marginTop: "1.2rem" }}>
         <h3>Skills</h3>
         {!hasSkills ? (
@@ -167,109 +227,6 @@ function AnalysisCompare({ earlier, later }) {
             <SkillGroup title="Only in the later job" help="The earlier job did not ask for these." items={skills.onlyLater} tone="" />
           </>
         )}
-      </div>
-    </>
-  );
-}
-
-/* ---------- compare: improvement loops ---------- */
-
-function LoopCompare({ earlier, later }) {
-  const a = loopSummary(earlier);
-  const b = loopSummary(later);
-  const relation = jdRelation(earlier, later);
-
-  const longest = Math.max(a.iterations.length, b.iterations.length);
-  const labels = [];
-  for (let i = 0; i < longest; i++) labels.push(i === 0 ? "Start" : "Round " + i);
-
-  function valuesFor(sum) {
-    const out = [];
-    for (let i = 0; i < longest; i++) out.push(sum.iterations[i] ? sum.iterations[i].score : null);
-    return out;
-  }
-
-  let verdict = "";
-  if (a.change && b.change) {
-    if (b.change.delta > a.change.delta) verdict = "The later run improved the score more (" + formatDelta(b.change.delta) + " compared with " + formatDelta(a.change.delta) + ").";
-    else if (b.change.delta < a.change.delta) verdict = "The earlier run improved the score more (" + formatDelta(a.change.delta) + " compared with " + formatDelta(b.change.delta) + ").";
-    else verdict = "Both runs changed the score by the same amount (" + formatDelta(a.change.delta) + ").";
-  }
-
-  const rounds = [];
-  for (let i = 0; i < longest; i++) {
-    rounds.push(
-      <div className="cx-row" key={i}>
-        <span className="cx-row-label">{labels[i]}</span>
-        <span className="cx-row-values">
-          {a.iterations[i] ? a.iterations[i].score : "–"}
-          {a.iterations[i] && a.iterations[i].accepted === false ? " (discarded)" : ""}
-        </span>
-        <span className="cx-row-values">
-          {b.iterations[i] ? b.iterations[i].score : "–"}
-          {b.iterations[i] && b.iterations[i].accepted === false ? " (discarded)" : ""}
-        </span>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      {relation === "different" && (
-        <div className="cx-warn" role="note">
-          <strong>These two runs are for different jobs</strong> (“{jobLabel(earlier)}” and “{jobLabel(later)}”), so their
-          scores are not directly comparable.
-        </div>
-      )}
-
-      {verdict && (
-        <div className="panel">
-          <h3>What changed</h3>
-          <p className="cx-summary">{verdict}</p>
-        </div>
-      )}
-
-      <div className="panel" style={{ marginTop: "1.2rem" }}>
-        <h3>Score by round</h3>
-        <TrendChart
-          labels={labels}
-          ariaLabel="Score by round for both improvement loop runs"
-          series={[
-            { name: "Earlier run (" + formatDate(earlier.created_at) + ")", color: "var(--ink-soft)", values: valuesFor(a) },
-            { name: "Later run (" + formatDate(later.created_at) + ")", color: "var(--match)", values: valuesFor(b) },
-          ]}
-        />
-      </div>
-
-      <div className="cx-pair" style={{ marginTop: "1.2rem" }}>
-        {[
-          { run: earlier, sum: a, tag: "Earlier" },
-          { run: later, sum: b, tag: "Later" },
-        ].map((x) => (
-          <div className="panel cx-run" key={x.run.id}>
-            <span className="cx-side-tag">{x.tag}</span>
-            <h3>
-              {x.sum.start} → {x.sum.best} <DeltaPill change={x.sum.change} />
-            </h3>
-            <p className="hx-muted">
-              {formatDate(x.run.created_at)} · {x.sum.rounds} {x.sum.rounds === 1 ? "round" : "rounds"}
-              {x.run.version_no ? " · saved as version " + x.run.version_no : ""}
-            </p>
-            {x.run.stop_reason && <p className="desc">{x.run.stop_reason}</p>}
-          </div>
-        ))}
-      </div>
-
-      <div className="panel" style={{ marginTop: "1.2rem" }}>
-        <h3>Round by round</h3>
-        <div className="cx-rows">
-          <div className="cx-row cx-row-head">
-            <span className="cx-row-label"></span>
-            <span className="cx-row-values">Earlier run</span>
-            <span className="cx-row-values">Later run</span>
-          </div>
-          {rounds}
-        </div>
       </div>
     </>
   );
@@ -371,7 +328,7 @@ function CompareBody({ type, a, b }) {
     };
   }, [type, a, b]);
 
-  const titles = { analysis: "Compare analyses", loop: "Compare improvement loops", version: "Compare resume versions" };
+  const titles = { analysis: "Compare analyses", version: "Compare resume versions" };
 
   let body;
   if (state.status === "loading") {
@@ -399,8 +356,7 @@ function CompareBody({ type, a, b }) {
             <strong>Showing sample data.</strong> The history service is not available on your backend yet.
           </div>
         )}
-        {type === "analysis" && <AnalysisCompare earlier={earlier} later={later} />}
-        {type === "loop" && <LoopCompare earlier={earlier} later={later} />}
+        {type === "analysis" && <AnalysisCompare earlier={earlier} later={later} versions={state.data.versions || []} />}
         {type === "version" && <VersionCompare earlier={earlier} later={later} />}
 
         <div className="callout" style={{ marginTop: "1.2rem" }}>
@@ -459,7 +415,7 @@ export default function Compare() {
           <div className="panel">
             <h3>Nothing to compare yet</h3>
             <p className="desc">
-              Open the History page, tick two items of the same kind (two analyses, two loop runs or two resume versions) and
+              Open the History page, tick two items of the same kind (two analyses or two resume versions) and
               press Compare.
             </p>
             <Link to="/history" className="btn">

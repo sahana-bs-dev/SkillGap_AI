@@ -3,23 +3,23 @@ import { Link, useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Layout/Sidebar";
 import "../../components/Layout/Sidebar.css";
 import TrendChart from "../../components/TrendChart";
-import { listAnalyses, listLoops } from "../../api/historyApi";
+import { listAnalyses } from "../../api/historyApi";
 import { listResumeVersions } from "../../api/rewriteApi";
+import { useSkillPlans, planForAnalysis, learnedCount } from "../../utils/skillPlanStats";
+import { buildTimeline, latestRewriteFor } from "../../utils/scoreTimeline";
 import {
   byDateAsc,
   byDateDesc,
   formatDate,
-  formatDay,
   formatDelta,
   jobKey,
   jobLabel,
-  loopSummary,
   scoreChange,
 } from "../../utils/historyStats";
 import "../MatchReport/MatchReport.css"; // same page width as the other pages
 import "./History.css";
 
-// Route: /history   (compare pages open from here: /compare?type=analysis|loop|version&a=ID&b=ID)
+// Route: /history   (compare pages open from here: /compare?type=analysis|version&a=ID&b=ID)
 
 /* ---------- loading helper ---------- */
 
@@ -106,8 +106,8 @@ function Empty({ title, children }) {
 
 /* ---------- analyses tab ---------- */
 
-function AnalysesTab({ items, selected, onToggle, onCompare, onClear }) {
-  const [jobFilter, setJobFilter] = useState("all");
+function AnalysesTab({ items, versions, plans, selected, onToggle, onCompare, onClear }) {
+  const [jobChoice, setJobChoice] = useState(null); // null = not chosen yet, so show your latest job
   const [open, setOpen] = useState({});
 
   const jobs = useMemo(() => {
@@ -120,6 +120,18 @@ function AnalysesTab({ items, selected, onToggle, onCompare, onClear }) {
     }
     return Array.from(seen.values());
   }, [items]);
+
+  // The chart opens on your most recent job so it is never a mix of unrelated jobs.
+  const latestJobKey = useMemo(() => {
+    const newest = byDateDesc(items);
+    for (let i = 0; i < newest.length; i++) {
+      const key = jobKey(newest[i]);
+      if (key) return key;
+    }
+    return "all";
+  }, [items]);
+  const jobFilter =
+    jobChoice !== null && (jobChoice === "all" || jobs.some((j) => j.key === jobChoice)) ? jobChoice : latestJobKey;
 
   const visible = useMemo(() => {
     return items.filter((a) => jobFilter === "all" || jobKey(a) === jobFilter);
@@ -139,13 +151,13 @@ function AnalysesTab({ items, selected, onToggle, onCompare, onClear }) {
     return out;
   }, [ascending]);
 
-  const labels = ascending.map((a) => formatDay(a.created_at));
-  const matchValues = ascending.map((a) => (typeof a.match_score === "number" ? a.match_score : null));
-  const atsValues = ascending.map((a) => (typeof a.ats_score === "number" ? a.ats_score : null));
-
-  const matchPoints = matchValues.filter((v) => v !== null);
+  // analyses plus the scores taken after each resume rewrite
+  const timeline = useMemo(() => buildTimeline(items, versions, jobFilter), [items, versions, jobFilter]);
+  const matchPoints = timeline.matchValues.filter((v) => v !== null);
   const trend = matchPoints.length >= 2 ? scoreChange(matchPoints[0], matchPoints[matchPoints.length - 1]) : null;
   const mixedJobs = jobFilter === "all" && jobs.length > 1;
+  const jobName = jobs.find((j) => j.key === jobFilter)?.label || "";
+  const learnedNow = visible.reduce((best, a) => Math.max(best, learnedCount(planForAnalysis(plans, a.id))), 0);
 
   if (items.length === 0) {
     return (
@@ -164,6 +176,10 @@ function AnalysesTab({ items, selected, onToggle, onCompare, onClear }) {
     const isOpen = Boolean(open[a.id]);
     const matched = a.matched_skills || [];
     const missing = a.missing_skills || [];
+    const plan = planForAnalysis(plans, a.id);
+    const learned = plan?.progress?.learned_skills || [];
+    const rewrite = latestRewriteFor(versions, a.id);
+    const rs = rewrite ? rewrite.scores : null;
 
     cards.push(
       <div className={"hx-card" + (isSelected ? " hx-card-selected" : "")} key={a.id}>
@@ -188,7 +204,29 @@ function AnalysesTab({ items, selected, onToggle, onCompare, onClear }) {
                 {matched.length} matched · {missing.length} missing
               </span>
             )}
+            {plan && (
+              <span className="tag" title="Share of your learning-plan steps you have ticked">
+                Learning {plan.progress.pct}% · {learned.length} {learned.length === 1 ? "skill" : "skills"} learned
+              </span>
+            )}
           </div>
+          {rs && (
+            <p className="hx-reason">
+              After your latest rewrite:{" "}
+              {typeof rs.ats_after === "number" && (
+                <>
+                  ATS <strong>{typeof rs.ats_before === "number" ? rs.ats_before + " → " : ""}{rs.ats_after}</strong>
+                </>
+              )}
+              {typeof rs.match_after === "number" && (
+                <>
+                  {" · "}Match <strong>{typeof rs.match_before === "number" ? rs.match_before + " → " : ""}{rs.match_after}</strong>
+                </>
+              )}
+              {rewrite.learned_skill_count > 0 &&
+                " · " + rewrite.learned_skill_count + " learned " + (rewrite.learned_skill_count === 1 ? "skill" : "skills") + " added"}
+            </p>
+          )}
           {a.flow !== "resume_only" && (
             <>
               <button className="hx-linkbtn" onClick={() => setOpen({ ...open, [a.id]: !isOpen })} aria-expanded={isOpen}>
@@ -200,6 +238,12 @@ function AnalysesTab({ items, selected, onToggle, onCompare, onClear }) {
                   <Chips items={matched} tone="match" />
                   <p className="hx-label">Missing</p>
                   <Chips items={missing} tone="gap" />
+                  {learned.length > 0 && (
+                    <>
+                      <p className="hx-label">Learned from your plan</p>
+                      <Chips items={learned.map((l) => l.skill)} tone="match" />
+                    </>
+                  )}
                 </div>
               )}
             </>
@@ -213,11 +257,11 @@ function AnalysesTab({ items, selected, onToggle, onCompare, onClear }) {
     <>
       <div className="panel">
         <div className="hx-panel-head">
-          <h3>Score over time</h3>
+          <h3>{jobFilter === "all" ? "Score over time" : "How your scores changed for this job"}</h3>
           {jobs.length > 1 && (
             <label className="hx-filter">
               Show
-              <select value={jobFilter} onChange={(e) => setJobFilter(e.target.value)}>
+              <select value={jobFilter} onChange={(e) => setJobChoice(e.target.value)}>
                 <option value="all">All jobs ({items.length})</option>
                 {jobs.map((j) => (
                   <option value={j.key} key={j.key}>
@@ -231,10 +275,15 @@ function AnalysesTab({ items, selected, onToggle, onCompare, onClear }) {
 
         {trend ? (
           <p className="desc">
-            Match score {trend.from} → {trend.to} (<strong>{formatDelta(trend.delta)}</strong>) across {matchPoints.length} analyses.
+            {jobName ? "Match for " + jobName + ": " : "Match score "}
+            {trend.from} → {trend.to} (<strong>{formatDelta(trend.delta)}</strong>) across {timeline.analysisCount}{" "}
+            {timeline.analysisCount === 1 ? "analysis" : "analyses"}
+            {timeline.rewriteCount > 0 &&
+              " and " + timeline.rewriteCount + (timeline.rewriteCount === 1 ? " rewrite" : " rewrites")}
+            {learnedNow > 0 && ", with " + learnedNow + " " + (learnedNow === 1 ? "skill" : "skills") + " learned"}.
           </p>
         ) : (
-          <p className="desc">Run at least two analyses with a job to see a trend.</p>
+          <p className="desc">Run another analysis, or rewrite your resume, to see how your scores change.</p>
         )}
         {mixedJobs && (
           <p className="hx-note">
@@ -244,13 +293,22 @@ function AnalysesTab({ items, selected, onToggle, onCompare, onClear }) {
         )}
 
         <TrendChart
-          labels={labels}
+          labels={timeline.labels}
+          subLabels={timeline.subLabels}
+          pointKinds={timeline.kinds}
           ariaLabel="Match score and ATS score over time"
           series={[
-            { name: "Match score", color: "var(--match)", values: matchValues },
-            { name: "ATS score", color: "var(--gold)", values: atsValues },
+            { name: "Match score", color: "var(--match)", values: timeline.matchValues },
+            { name: "ATS score", color: "var(--gold)", values: timeline.atsValues },
           ]}
         />
+        {timeline.rewriteCount > 0 && (
+          <p className="hx-note">
+            Every rewrite starts again from your original resume, not from the previous rewrite, and match scores come
+            from an AI check. So two rewrites can score differently, and the line can dip. Look at the latest and best
+            scores rather than every dip.
+          </p>
+        )}
       </div>
 
       <div className="panel" style={{ marginTop: "1.2rem" }}>
@@ -259,86 +317,6 @@ function AnalysesTab({ items, selected, onToggle, onCompare, onClear }) {
         <div className="hx-list">{cards}</div>
       </div>
     </>
-  );
-}
-
-/* ---------- loops tab ---------- */
-
-function LoopsTab({ items, selected, onToggle, onCompare, onClear }) {
-  const [open, setOpen] = useState({});
-
-  if (items.length === 0) {
-    return (
-      <Empty title="No improvement loops yet">
-        Run the improvement loop from the Resume rewrite page and each run is saved here.{" "}
-        <Link to="/resume-rewrite">Go to Resume rewrite</Link>.
-      </Empty>
-    );
-  }
-
-  const cards = [];
-  const list = byDateDesc(items);
-  for (let i = 0; i < list.length; i++) {
-    const run = list[i];
-    const sum = loopSummary(run);
-    const isSelected = selected.includes(run.id);
-    const isOpen = Boolean(open[run.id]);
-
-    const rounds = [];
-    for (let k = 0; k < sum.iterations.length; k++) {
-      const it = sum.iterations[k];
-      rounds.push(
-        <div className="hx-round" key={it.iteration}>
-          <span className="hx-round-name">
-            {it.iteration === 0 ? "Start" : "Round " + it.iteration}
-            {it.accepted === false ? <span className="tag gap">discarded</span> : null}
-            {it.iteration === run.best_iteration && it.iteration !== 0 ? <span className="tag match">best</span> : null}
-          </span>
-          <span className="hx-round-score">{it.score}</span>
-          <span className="hx-muted">
-            {(it.remaining_gaps || []).length ? (it.remaining_gaps || []).length + " gaps left" : "no gaps left"}
-          </span>
-        </div>
-      );
-    }
-
-    cards.push(
-      <div className={"hx-card" + (isSelected ? " hx-card-selected" : "")} key={run.id}>
-        <label className="hx-check">
-          <input type="checkbox" checked={isSelected} onChange={() => onToggle(run.id)} aria-label={"Select loop from " + formatDate(run.created_at)} />
-        </label>
-        <div className="hx-card-main">
-          <div className="hx-card-head">
-            <span className="hx-card-title">
-              {sum.start} → {sum.best}
-              {sum.change ? <span className={"hx-delta hx-delta-" + sum.change.tone}> {formatDelta(sum.change.delta)}</span> : null}
-            </span>
-            {run.jd_title && <span className="tag">{run.jd_title}</span>}
-          </div>
-          <div className="hx-card-meta">
-            <span>{formatDate(run.created_at)}</span>
-            <span>
-              {sum.rounds} {sum.rounds === 1 ? "round" : "rounds"}
-            </span>
-            {run.version_no ? <span>Saved as version {run.version_no}</span> : null}
-          </div>
-          {run.stop_reason && <p className="hx-reason">{run.stop_reason}</p>}
-          <button className="hx-linkbtn" onClick={() => setOpen({ ...open, [run.id]: !isOpen })} aria-expanded={isOpen}>
-            {isOpen ? "Hide rounds" : "Show rounds"}
-          </button>
-          {isOpen && <div className="hx-rounds">{rounds}</div>}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="panel">
-      <h3>Your improvement loops</h3>
-      <p className="desc">Each run rewrites your resume, re-scores it and keeps the best round.</p>
-      <SelectBar count={selected.length} noun="loop runs" onCompare={onCompare} onClear={onClear} />
-      <div className="hx-list">{cards}</div>
-    </div>
   );
 }
 
@@ -366,12 +344,26 @@ function VersionsTab({ items, selected, onToggle, onCompare, onClear }) {
           <div className="hx-card-head">
             <span className="hx-card-title">Version {v.version_no}</span>
             {i === 0 && <span className="tag active">Latest</span>}
-            {v.source === "improvement_loop" && <span className="tag">From improvement loop</span>}
+            {v.learned_skill_count > 0 && (
+              <span className="tag match">
+                {v.learned_skill_count} learned {v.learned_skill_count === 1 ? "skill" : "skills"} added
+              </span>
+            )}
             {v.warning_count > 0 && <span className="tag gap">{v.warning_count} to check</span>}
           </div>
           <div className="hx-card-meta">
             <span>{formatDate(v.created_at)}</span>
             {v.change_count > 0 && <span>{v.change_count} changes listed</span>}
+            {v.scores && typeof v.scores.ats_after === "number" && (
+              <span>
+                ATS <strong>{typeof v.scores.ats_before === "number" ? v.scores.ats_before + " → " : ""}{v.scores.ats_after}</strong>
+              </span>
+            )}
+            {v.scores && typeof v.scores.match_after === "number" && (
+              <span>
+                Match <strong>{typeof v.scores.match_before === "number" ? v.scores.match_before + " → " : ""}{v.scores.match_after}</strong>
+              </span>
+            )}
           </div>
           <p className="hx-reason">{v.summary || "Rewritten resume"}</p>
         </div>
@@ -396,7 +388,6 @@ function VersionsTab({ items, selected, onToggle, onCompare, onClear }) {
 
 const TABS = [
   { id: "analyses", label: "Analyses", type: "analysis" },
-  { id: "loops", label: "Improvement loops", type: "loop" },
   { id: "versions", label: "Resume versions", type: "version" },
 ];
 
@@ -404,9 +395,9 @@ export default function History() {
   const navigate = useNavigate();
   const [tab, setTab] = useState("analyses");
   const [analyses, reloadAnalyses] = useResource(listAnalyses);
-  const [loops, reloadLoops] = useResource(listLoops);
   const [versions, reloadVersions] = useResource(listResumeVersions);
-  const [selected, setSelected] = useState({ analyses: [], loops: [], versions: [] });
+  const skillPlans = useSkillPlans(); // learning progress per analysis; the page works without it
+  const [selected, setSelected] = useState({ analyses: [], versions: [] });
 
   function toggle(kind, id) {
     setSelected((prev) => {
@@ -426,15 +417,13 @@ export default function History() {
     navigate("/compare?type=" + type + "&a=" + encodeURIComponent(ids[0]) + "&b=" + encodeURIComponent(ids[1]));
   }
 
-  const sources = { analyses: analyses, loops: loops, versions: versions };
-  const reloaders = { analyses: reloadAnalyses, loops: reloadLoops, versions: reloadVersions };
+  const sources = { analyses: analyses, versions: versions };
+  const reloaders = { analyses: reloadAnalyses, versions: reloadVersions };
   const counts = {
     analyses: analyses.status === "done" ? analyses.data.items.length : null,
-    loops: loops.status === "done" ? loops.data.items.length : null,
     versions: versions.status === "done" ? versions.data.length : null,
   };
-  const usingSample =
-    (analyses.status === "done" && analyses.data.isSample) || (loops.status === "done" && loops.data.isSample);
+  const usingSample = analyses.status === "done" && analyses.data.isSample;
 
   const active = sources[tab];
   const activeTab = TABS.find((t) => t.id === tab);
@@ -460,20 +449,12 @@ export default function History() {
     body = (
       <AnalysesTab
         items={analyses.data.items}
+        versions={versions.status === "done" ? versions.data : []}
+        plans={skillPlans.plans}
         selected={selected.analyses}
         onToggle={(id) => toggle("analyses", id)}
         onCompare={() => compare("analyses", "analysis")}
         onClear={() => clear("analyses")}
-      />
-    );
-  } else if (tab === "loops") {
-    body = (
-      <LoopsTab
-        items={loops.data.items}
-        selected={selected.loops}
-        onToggle={(id) => toggle("loops", id)}
-        onCompare={() => compare("loops", "loop")}
-        onClear={() => clear("loops")}
       />
     );
   } else {
@@ -497,7 +478,7 @@ export default function History() {
             <span className="kicker"></span>
             <h1>History</h1>
             <p>
-              Everything you have analysed, rewritten and improved, and how your scores have changed. Pick any two items
+              Everything you have analysed and rewritten, and how your scores have changed. Pick any two items
               to compare them.
             </p>
           </div>
@@ -509,7 +490,7 @@ export default function History() {
         {usingSample && (
           <div className="hx-sample" role="status">
             <strong>Showing sample data.</strong> The history service is not available on your backend yet, so the
-            analyses and loop runs below are examples. Your resume versions are real.
+            analyses below are examples. Your resume versions are real.
           </div>
         )}
 
@@ -530,7 +511,6 @@ export default function History() {
 
         <p className="hx-tabhelp">
           {activeTab.id === "analyses" && "Each time you matched your resume to a job. Track how your ATS and match scores move."}
-          {activeTab.id === "loops" && "Each run of the improvement loop and how the score changed round by round."}
           {activeTab.id === "versions" && "Every rewritten resume that was saved."}
         </p>
 

@@ -4,7 +4,10 @@ import Sidebar from "../../components/Layout/Sidebar";
 import "../../components/Layout/Sidebar.css";
 import TrendChart from "../../components/TrendChart";
 import { useAuth } from "../../context/AuthContext";
-import { listAnalyses, listLoops } from "../../api/historyApi";
+import { listAnalyses } from "../../api/historyApi";
+import { listResumeVersions } from "../../api/rewriteApi";
+import LearningProgress from "../../components/LearningProgress/LearningProgress";
+import { useSkillPlans, planForAnalysis, learnedCount } from "../../utils/skillPlanStats";
 import {
   byDateAsc,
   byDateDesc,
@@ -13,9 +16,10 @@ import {
   formatDelta,
   jobKey,
   jobLabel,
-  loopSummary,
+  parseApiDate,
   scoreChange,
 } from "../../utils/historyStats";
+import { buildTimeline, latestRewriteFor } from "../../utils/scoreTimeline";
 import "../MatchReport/MatchReport.css"; // same page width as the other pages
 import "../History/History.css"; // shared chips, deltas and notes
 import "./Dashboard.css";
@@ -123,15 +127,6 @@ function buildStats(items) {
   };
 }
 
-function bestLoopGain(loops) {
-  let best = null;
-  for (let i = 0; i < loops.length; i++) {
-    const change = loopSummary(loops[i]).change;
-    if (change && (best === null || change.delta > best)) best = change.delta;
-  }
-  return best;
-}
-
 /* ---------- small pieces ---------- */
 
 function Change({ change }) {
@@ -169,7 +164,9 @@ function displayName(user) {
 export default function Dashboard() {
   const { user } = useAuth();
   const [analyses, reloadAnalyses] = useResource(listAnalyses);
-  const [loops] = useResource(listLoops);
+  const [versions] = useResource(listResumeVersions); // used for "after rewrite" scores; the page works without it
+  const [jobChoice, setJobChoice] = useState(null); // null = your latest job
+  const skillPlans = useSkillPlans(); // saved learning plans; if they fail to load the page just shows no learning info
 
   let body;
   if (analyses.status === "loading") {
@@ -203,8 +200,49 @@ export default function Dashboard() {
     );
   } else {
     const stats = buildStats(analyses.data.items);
-    const loopItems = loops.status === "done" ? loops.data.items : null;
-    const gain = loopItems ? bestLoopGain(loopItems) : null;
+    // Jobs you have matched against, newest first. The dashboard shows one job at a time.
+    const matchRuns = byDateDesc(analyses.data.items).filter((a) => jobKey(a) && typeof a.match_score === "number");
+    const jobs = [];
+    matchRuns.forEach((a) => {
+      const existing = jobs.find((j) => j.key === jobKey(a));
+      if (existing) existing.count += 1;
+      else jobs.push({ key: jobKey(a), label: jobLabel(a), count: 1 });
+    });
+    const latestJobKey = jobs.length > 0 ? jobs[0].key : "";
+    const jobFocus = jobChoice && jobs.some((j) => j.key === jobChoice) ? jobChoice : latestJobKey;
+    const focusIndex = matchRuns.findIndex((a) => jobKey(a) === jobFocus);
+    const focusMatch = focusIndex === -1 ? null : matchRuns[focusIndex]; // newest analysis of the chosen job
+    const previousRun = focusIndex === -1 ? undefined : matchRuns.slice(focusIndex + 1).find((a) => jobKey(a) === jobFocus);
+    const focusMatchChange = focusMatch && previousRun ? scoreChange(previousRun.match_score, focusMatch.match_score) : null;
+
+    // The saved learning plan for the chosen job's newest match (if you have opened its Skill gap page).
+    const latestPlan = focusMatch ? planForAnalysis(skillPlans.plans, focusMatch.id) : null;
+    const learnedNow = learnedCount(latestPlan);
+    const missingCount = focusMatch ? (focusMatch.missing_skills || []).length : null;
+    // With a plan, learned skills no longer count as skills to close.
+    const openGaps = missingCount !== null ? Math.max(0, missingCount - learnedNow) : null;
+
+    // Scores taken after a resume rewrite (saved on each version) count as your newest scores.
+    const versionList = versions.status === "done" ? versions.data : [];
+    const rewrite = focusMatch ? latestRewriteFor(versionList, focusMatch.id) : null;
+    const rs = rewrite ? rewrite.scores : null;
+    const matchAfter = rs && typeof rs.match_after === "number";
+    const atsAfter =
+      rs &&
+      typeof rs.ats_after === "number" &&
+      (!stats.latestAts || parseApiDate(rewrite.created_at) > parseApiDate(stats.latestAts.created_at));
+
+    // Chart: your latest job only (analyses + rewrites), so lines never mix unrelated jobs.
+    const chartJobKey = jobFocus;
+    const timeline = chartJobKey ? buildTimeline(analyses.data.items, versionList, chartJobKey) : null;
+    const useTimeline = Boolean(timeline && timeline.points.length > 0);
+    const tail = (list) => list.slice(Math.max(0, list.length - CHART_POINTS));
+    // Start / latest / best match score of the points shown, so the line is easy to read.
+    const shownMatch = useTimeline ? tail(timeline.matchValues).filter((v) => typeof v === "number") : [];
+    const matchSummary =
+      shownMatch.length >= 2
+        ? { start: shownMatch[0], latest: shownMatch[shownMatch.length - 1], best: Math.max(...shownMatch) }
+        : null;
 
     const recentRows = [];
     for (let i = 0; i < stats.recent.length; i++) {
@@ -234,44 +272,96 @@ export default function Dashboard() {
 
     body = (
       <>
+        {jobs.length > 1 && (
+          <div className="hx-panel-head" style={{ marginBottom: "1rem" }}>
+            <span className="desc">Showing your match scores, skills and learning progress for:</span>
+            <label className="hx-filter">
+              <select value={jobFocus} onChange={(e) => setJobChoice(e.target.value)} aria-label="Choose a job">
+                {jobs.map((j) => (
+                  <option value={j.key} key={j.key}>
+                    {j.label} ({j.count})
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
+
         <div className="dx-stats">
           <StatCard
             label="Latest ATS score"
-            value={stats.latestAts ? stats.latestAts.ats_score : "–"}
-            change={stats.atsChange}
-            hint={stats.latestAts ? formatDate(stats.latestAts.created_at) : "Run an ATS check"}
+            value={atsAfter ? rs.ats_after : stats.latestAts ? stats.latestAts.ats_score : "–"}
+            change={atsAfter ? scoreChange(rs.ats_before, rs.ats_after) : stats.atsChange}
+            hint={
+              atsAfter
+                ? "After your latest rewrite"
+                : stats.latestAts
+                ? formatDate(stats.latestAts.created_at)
+                : "Run an ATS check"
+            }
           />
           <StatCard
             label="Latest match score"
-            value={stats.latestMatch ? stats.latestMatch.match_score : "–"}
-            change={stats.matchChange}
-            hint={stats.latestMatch ? jobLabel(stats.latestMatch) : "Match your resume to a job"}
+            value={matchAfter ? rs.match_after : focusMatch ? focusMatch.match_score : "–"}
+            change={matchAfter ? scoreChange(rs.match_before, rs.match_after) : focusMatchChange}
+            hint={
+              focusMatch
+                ? (matchAfter ? "After your latest rewrite · " : "") + jobLabel(focusMatch)
+                : "Match your resume to a job"
+            }
           />
           <StatCard label="Analyses run" value={stats.total} hint="All time" />
           <StatCard
-            label="Improvement loops"
-            value={loopItems ? loopItems.length : "–"}
-            hint={gain !== null ? "Best gain " + formatDelta(gain) : "No loop runs yet"}
+            label="Skills to close"
+            value={openGaps !== null ? openGaps : "–"}
+            hint={
+              openGaps === null
+                ? "Match your resume to a job"
+                : learnedNow > 0
+                ? learnedNow + " learned from your plan"
+                : "Missing in your latest match"
+            }
           />
         </div>
 
+        <LearningProgress plan={latestPlan} />
+
         <div className="panel">
-          <h3>Score over time</h3>
-          <p className="desc">Your latest {stats.labels.length} analyses, oldest to newest.</p>
-          {stats.mixedJobs && (
+          <h3>{useTimeline ? "Score over time for " + jobLabel(focusMatch) : "Score over time"}</h3>
+          <p className="desc">
+            {useTimeline
+              ? "Your latest " + tail(timeline.labels).length + " scores for this job, oldest to newest. A filled dot is a score taken after a resume rewrite."
+              : "Your latest " + stats.labels.length + " analyses, oldest to newest."}
+          </p>
+          {matchSummary && (
+            <p className="desc">
+              Match score: started at <strong>{matchSummary.start}</strong>, latest <strong>{matchSummary.latest}</strong>
+              , best <strong>{matchSummary.best}</strong>.
+            </p>
+          )}
+          {!useTimeline && stats.mixedJobs && (
             <p className="hx-note">
               The match line mixes different jobs, so ups and downs can come from the job and not only your resume. Open
               History to filter by one job.
             </p>
           )}
           <TrendChart
-            labels={stats.labels}
+            labels={useTimeline ? tail(timeline.labels) : stats.labels}
+            subLabels={useTimeline ? tail(timeline.subLabels) : undefined}
+            pointKinds={useTimeline ? tail(timeline.kinds) : undefined}
             ariaLabel="Match score and ATS score over your latest analyses"
             series={[
-              { name: "Match score", color: "var(--match)", values: stats.matchValues },
-              { name: "ATS score", color: "var(--gold)", values: stats.atsValues },
+              { name: "Match score", color: "var(--match)", values: useTimeline ? tail(timeline.matchValues) : stats.matchValues },
+              { name: "ATS score", color: "var(--gold)", values: useTimeline ? tail(timeline.atsValues) : stats.atsValues },
             ]}
           />
+          {useTimeline && timeline.rewriteCount > 0 && (
+            <p className="hx-note">
+              Every rewrite starts again from your original resume, not from the previous rewrite, and match scores come
+              from an AI check. So two rewrites can score differently, and the line can dip. Look at the latest and best
+              scores rather than every dip.
+            </p>
+          )}
         </div>
 
         <div className="panel" style={{ marginTop: "1.2rem" }}>
@@ -293,8 +383,8 @@ export default function Dashboard() {
             <Link to="/resume-rewrite" className="btn secondary">
               Rewrite my resume
             </Link>
-            <Link to="/improvement-loop" className="btn secondary">
-              Improvement loop
+            <Link to="/skill-gap" className="btn secondary">
+              Skill gap plan
             </Link>
             <Link to="/history" className="btn secondary">
               Compare runs

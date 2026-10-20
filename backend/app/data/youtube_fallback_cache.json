@@ -810,5 +810,271 @@
   "spring boot": {
     "learn": [],
     "practice": []
+  },
+  "cloud computing": {
+    "learn": [
+      {
+        "title": "Cloud Computing RoadMap : How to become Cloud Engineer in 2024 ?",
+        "url": "https://www.youtube.com/watch?v=70oYrSnRgoI"
+      }
+    ],
+    "practice": [
+      {
+        "title": "What is Cloud Computing? Learn How Cloud Works! #shorts #cloudcomputing",
+        "url": "https://www.youtube.com/watch?v=eXNvTjKcP_0"
+      }
+    ]
+  },
+  "debugging tools": {
+    "learn": [
+      {
+        "title": "Debugging Methods Explained: Guide for all Software Engineers | Tanay Pratap Hindi",
+        "url": "https://www.youtube.com/watch?v=WHmapcIjCTQ"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Debugging Like A Pro",
+        "url": "https://www.youtube.com/watch?v=J8uAiZJMfzQ"
+      }
+    ]
+  },
+  "junit": {
+    "learn": [
+      {
+        "title": "\ud83d\udd25 Master JUNIT in single Video | JUNIT Crash Course | Hindi",
+        "url": "https://www.youtube.com/watch?v=sq_pYMepfP0"
+      }
+    ],
+    "practice": [
+      {
+        "title": "JUnit PowerUp: Practical Testing Tips",
+        "url": "https://www.youtube.com/watch?v=aHRupRMQbaU"
+      }
+    ]
+  },
+  "react.js": {
+    "learn": [
+      {
+        "title": "React Tutorial for Beginners",
+        "url": "https://www.youtube.com/watch?v=SqcY0GlETPk"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Learn React With This ONE Project",
+        "url": "https://www.youtube.com/watch?v=G6D9cBaLViA"
+      }
+    ]
+  },
+  "responsive design": {
+    "learn": [
+      {
+        "title": "A practical guide to responsive web design",
+        "url": "https://www.youtube.com/watch?v=x4u1yp3Msao"
+      }
+    ],
+    "practice": [
+      {
+        "title": "\u2744 Responsive Columns #javascript #html #css #columns #property #webdevelopment #tips #how #coding #x",
+        "url": "https://www.youtube.com/watch?v=-hJ3lz-6XqE"
+      }
+    ]
+  },
+  "data cleaning": {
+    "learn": [
+      {
+        "title": "Master Data Cleaning Essentials on Excel in Just 10 Minutes",
+        "url": "https://www.youtube.com/watch?v=jxq4-KSB_OA"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Data Cleaning &amp; Preparation - Hands-on Practice",
+        "url": "https://www.youtube.com/watch?v=dxTesoAbb10"
+      }
+    ]
+  },
+  "data visualization": {
+    "learn": [
+      {
+        "title": "Data Visualization Tutorial For Beginners | Big Data Analytics Tutorial | Simplilearn",
+        "url": "https://www.youtube.com/watch?v=MiiANxRHSv4"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Tableau Video4 | Data Visualization: Practical Exercises &amp; Formatting Tips | Venkat Reddy AI Classes",
+        "url": "https://www.youtube.com/watch?v=UAern8nvlwk"
+      }
+    ]
+  },
+  "excel": {
+    "learn": [
+      {
+        "title": "Excel Tutorial for Beginners",
+        "url": "https://www.youtube.com/watch?v=LgXzzu68j7M"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Working with Excel sheets | Excel worksheet | Excel Practice ( Exercise-1)",
+        "url": "https://www.youtube.com/watch?v=WQ4vXP_PHcw"
+      }
+    ]
+  },
+  "python": {
+    "learn": [
+      {
+        "title": "Python Tutorial For Beginners in Hindi | Complete Python Course \ud83d\udd25",
+        "url": "https://www.youtube.com/watch?v=UrsmFxEIp5k"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Python Practice Questions \ud83d\udd25 | if, elif &amp; else Hands-On Coding Practice | Lecture : 7",
+        "url": "https://www.youtube.com/watch?v=VUjY69mN9ew"
+      }
+    ]
+  },
+  "jupyter notebook": {
+    "learn": [
+      {
+        "title": "Jupyter Notebook Tutorial for Beginners with Python",
+        "url": "https://www.youtube.com/watch?v=2WL-XTl2QYI"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Python Dictionary Practice Exercises | Jupyter Notebook Tutorial",
+        "url": "https://www.youtube.com/watch?v=3MI6hgGz7iI"
+      }
+    ]
+  },
+  "matplotlib": {
+    "learn": [
+      {
+        "title": "Learn Matplotlib in 30 Minutes - Python Matplotlib Tutorial",
+        "url": "https://www.youtube.com/watch?v=7Lc2AxiM17o"
+      }
+    ],
+    "practice": [
+      {
+        "title": "NumPy, Pandas, Matplotlib - Working With Libraries - Python Programming Bootcamp - Day 9",
+        "url": "https://www.youtube.com/watch?v=V295w93nXgo"
+      }
+    ]
+  },
+  "power bi": {
+    "learn": [
+      {
+        "title": "Your first 10 minutes of Power BI - A no-nonsense getting started tutorial for beginners",
+        "url": "https://www.youtube.com/watch?v=9tF1IrfLflg"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Power Bi tutorial for Beginners | Power BI Dashboard Project in Hindi | Power Bi Course 2023",
+        "url": "https://www.youtube.com/watch?v=6cV3OwFrOkk"
+      }
+    ]
+  },
+  "seaborn": {
+    "learn": [
+      {
+        "title": "Seaborn Full Course | Seaborn Tutorial (Data Visualization) | Python Seaborn One Shot | Intellipaat",
+        "url": "https://www.youtube.com/watch?v=39cge_JhVjI"
+      }
+    ],
+    "practice": [
+      {
+        "title": "The Book to Learn Data Analysis with Python to Build Skills with NumPy, Pandas, Matplotlib &amp; Seaborn",
+        "url": "https://www.youtube.com/watch?v=jetCdmExUTY"
+      }
+    ]
+  },
+  "http": {
+    "learn": [
+      {
+        "title": "HTTP crash course | http Methods | http headers",
+        "url": "https://www.youtube.com/watch?v=qgZiUvV41TI"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Me d\u00ea ALGUNS MINUTOS e eu vou economizar ANOS do seu estudo!",
+        "url": "https://www.youtube.com/watch?v=uphGnGJhO2E"
+      }
+    ]
+  },
+  "json": {
+    "learn": [
+      {
+        "title": "JSON Tutorial in Hindi \ud83d\udd25\ud83d\udd25",
+        "url": "https://www.youtube.com/watch?v=whNFPBEI-wM"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Getting Data from a JSON File Exercise: Modern Web Development #14",
+        "url": "https://www.youtube.com/watch?v=KaG12-f14Ik"
+      }
+    ]
+  },
+  "authorization": {
+    "learn": [
+      {
+        "title": "Auth0 in 100 Seconds // And beyond with a Next.js Authentication Tutorial",
+        "url": "https://www.youtube.com/watch?v=yufqeJLP1rI"
+      }
+    ],
+    "practice": [
+      {
+        "title": "5 Minute Finger and Hand Stiffness Exercise Routine for Both Hands: No Equipment Required",
+        "url": "https://www.youtube.com/watch?v=2G6pHQJEbWQ"
+      }
+    ]
+  },
+  "deployment": {
+    "learn": [
+      {
+        "title": "Learn How Companies Deploy Code to Production Environment [In 5 Mins!]",
+        "url": "https://www.youtube.com/watch?v=J9JbzsufemE"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Learn How Companies Deploy Code to Production Environment [In 5 Mins!]",
+        "url": "https://www.youtube.com/watch?v=J9JbzsufemE"
+      }
+    ]
+  },
+  "django": {
+    "learn": [
+      {
+        "title": "Django Tutorial for Beginners \u2013 Build Powerful Backends",
+        "url": "https://www.youtube.com/watch?v=rHux0gMZ3Eg"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Learn Django in 20 Minutes!!",
+        "url": "https://www.youtube.com/watch?v=nGIg40xs9e4"
+      }
+    ]
+  },
+  "error handling": {
+    "learn": [
+      {
+        "title": "Java Exception Handling Tutorial",
+        "url": "https://www.youtube.com/watch?v=_nmm0nZqIIY"
+      }
+    ],
+    "practice": [
+      {
+        "title": "Master Python Errors FAST \ud83d\udd25 | Exception Handling Practice (20 Problems: Create + Debug) | Hindi",
+        "url": "https://www.youtube.com/watch?v=3JX0owOagew"
+      }
+    ]
   }
 }
