@@ -26,8 +26,8 @@ skills have evidence; apply_match_score() computes the number.
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException  # type: ignore
+from pydantic import BaseModel  # type: ignore
 from app.agents.learning_agent import LEARNING_MODEL, LearningAgent
 from app.agents.skill_gap_agent import SKILL_GAP_MODEL, SkillGapAgent
 from app.agents.ats_agent import ATS_MODEL, ATSAgent
@@ -84,12 +84,15 @@ class MatchRequest(BaseModel):
     jd_text: str
 
 
-def _save_analysis(doc: dict) -> None:
-    """History must never break an analysis the user already waited for."""
+def _save_analysis(doc: dict) -> str | None:
+    """History must never break an analysis the user already waited for.
+    Returns the saved analysis id (None if saving failed)."""
     try:
-        analyses_collection.insert_one({**doc, "created_at": datetime.now(timezone.utc)})
+        result = analyses_collection.insert_one({**doc, "created_at": datetime.now(timezone.utc)})
+        return str(result.inserted_id)
     except Exception as exc:  # noqa: BLE001
         print(f"[history] could not save analysis: {exc}")
+        return None
 
 
 def _get_jd_analysis(jd_text: str):
@@ -191,7 +194,7 @@ def analyze_match(payload: MatchRequest, current_user: dict = Depends(get_curren
     match = apply_match_score(match_result.data, jd)
 
     user_id = str(current_user["_id"])
-    _save_analysis({
+    analysis_id = _save_analysis({
         "user_id": user_id,
         "flow": "resume_jd",
         "resume_hash": text_fingerprint(payload.resume_text, 16),
@@ -203,7 +206,8 @@ def analyze_match(payload: MatchRequest, current_user: dict = Depends(get_curren
         "matched_skills": [m.skill for m in match.matched_skills],
         "missing_skills": match.missing_skills,
     })
-    return match
+    # The id lets the Skill gap page save its plan against this analysis.
+    return match.model_copy(update={"analysis_id": analysis_id})
 
 
 @router.post("/skill-gap", response_model=SkillGapOutput)

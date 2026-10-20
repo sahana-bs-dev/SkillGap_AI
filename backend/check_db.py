@@ -11,11 +11,8 @@ It only reads. It never inserts, changes or deletes anything.
 from collections import Counter
 from datetime import datetime
 
-from bson import ObjectId
-
 from app.db.mongo_client import (
     analyses_collection,
-    loop_runs_collection,
     resume_versions_collection,
     resumes_collection,
     users_collection,
@@ -46,7 +43,6 @@ print("users:           ", users_collection.count_documents({}))
 print("resumes:         ", resumes_collection.count_documents({}))
 print("analyses:        ", analyses_collection.count_documents({}))
 print("resume_versions: ", resume_versions_collection.count_documents({}))
-print("loop_runs:       ", loop_runs_collection.count_documents({}))
 
 user_ids = set()
 for user in users_collection.find({}, {"_id": 1}):
@@ -112,35 +108,6 @@ section("Analyses per user")
 for uid, count in per_user.most_common():
     print(str(uid)[:24], "->", count)
 
-# ------------------------------------------------------------ loop runs
-section("Loop runs: newest 5")
-for d in loop_runs_collection.find({}).sort("created_at", -1).limit(5):
-    scores = [str(i.get("score")) for i in d.get("iterations") or []]
-    print(
-        when(d.get("created_at")),
-        "| job:", d.get("jd_title"),
-        "| best round:", d.get("best_iteration"),
-        "| version:", d.get("version_no"),
-        "| scores:", " > ".join(scores),
-    )
-
-for d in loop_runs_collection.find({}).limit(2000):
-    label = "loop_run " + str(d["_id"])
-    iterations = d.get("iterations") or []
-    if not iterations:
-        problem(label + ": no iterations stored")
-    rounds = {i.get("iteration") for i in iterations}
-    if d.get("best_iteration") is not None and d["best_iteration"] not in rounds:
-        problem(label + ": best_iteration " + str(d["best_iteration"]) + " is not one of the stored rounds")
-    if d.get("user_id") not in user_ids:
-        problem(label + ": user_id does not match any user")
-    if d.get("version_id"):
-        try:
-            if resume_versions_collection.count_documents({"_id": ObjectId(d["version_id"])}) == 0:
-                problem(label + ": version_id points to a version that does not exist")
-        except Exception:  # noqa: BLE001
-            problem(label + ": version_id is not a valid id")
-
 # ------------------------------------------------------ resume versions
 section("Resume versions")
 versions_by_user = {}
@@ -160,7 +127,6 @@ for uid, numbers in versions_by_user.items():
 # --------------------------------------------------------------- indexes
 section("Indexes")
 print("analyses:  ", sorted(analyses_collection.index_information().keys()))
-print("loop_runs: ", sorted(loop_runs_collection.index_information().keys()))
 
 # --------------------------------------------------------------- summary
 section("Result")

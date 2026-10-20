@@ -9,6 +9,15 @@ if the agent succeeded; agent failures come back as 502, same as /analyze.
 Two kinds of rewrite share this route:
   - job rewrite: matching_output + gaps are sent (tailored to a job)
   - ATS fix: no matching_output; ats_issues / ats_suggestions are sent instead
+
+A job rewrite may also send plan_id (a saved skill plan). The server then reads
+the plan, works out which skills the user has fully learned (every step ticked)
+and tells the agent to add them. The browser never sends the skill text itself:
+learned_skill_names can only narrow that list down, never add to it.
+
+Every rewrite is also scored (utils/rewrite_scoring.py) and the scores are saved on
+the version as "scores": ATS before/after, and in job mode match before/after. The
+History and Dashboard charts plot those as "after rewrite" points.
 """
 
 from __future__ import annotations
@@ -16,15 +25,18 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Optional
 
-from bson import ObjectId
-from bson.errors import InvalidId
-from fastapi import APIRouter, Depends, HTTPException
+from bson import ObjectId#type: ignore
+from bson.errors import InvalidId#type: ignore
+from fastapi import APIRouter, Depends, HTTPException#type: ignore
 
 from app.agents.resume_rewrite_agent import REWRITE_MODEL, ResumeRewriteAgent
 from app.auth.jwt_handler import get_current_user
-from app.db.mongo_client import resume_versions_collection
+from app.db.mongo_client import resume_versions_collection, skill_plans_collection
 from app.llm.gemini_client import GeminiClient
-from app.llm.schemas import ResumeRewriteInput, ResumeRewriteOutput
+from app.llm.schemas import LearnedSkill, ResumeRewriteInput, ResumeRewriteOutput
+from app.routes.skill_plans import learned_skills
+from app.utils.match_scoring import skill_key
+from app.utils.rewrite_scoring import score_rewrite
 
 router = APIRouter(prefix="/api/resume", tags=["resume"])
 
@@ -33,12 +45,15 @@ _rewrite_agent = ResumeRewriteAgent(llm_client=GeminiClient(), model=REWRITE_MOD
 
 class RewriteRequest(ResumeRewriteInput):
     parent_version_id: Optional[str] = None
+    plan_id: Optional[str] = None                   # saved skill plan to read learned skills from
+    learned_skill_names: Optional[list[str]] = None  # None = all learned skills, a list = only these
 
 
 class RewriteResponse(ResumeRewriteOutput):
     version_id: str
     version_no: int
     created_at: str
+    scores: Optional[dict] = None
 
 
 def _to_object_id(value: str) -> ObjectId:
@@ -62,10 +77,26 @@ def rewrite_resume(payload: RewriteRequest, current_user: dict = Depends(get_cur
         if not parent:
             raise HTTPException(status_code=404, detail="Parent version not found")
 
+    learned: list[LearnedSkill] = []
+    if payload.plan_id and payload.matching_output is not None:
+        try:
+            plan_oid = ObjectId(payload.plan_id)
+        except (InvalidId, TypeError):
+            raise HTTPException(status_code=400, detail="Invalid plan id")
+        plan_doc = skill_plans_collection.find_one({"_id": plan_oid, "user_id": user_id})
+        if not plan_doc:
+            raise HTTPException(status_code=404, detail="Skill plan not found")
+        available = learned_skills(plan_doc.get("plan", []), plan_doc.get("checked", {}))
+        if payload.learned_skill_names is not None:
+            wanted = {skill_key(n) for n in payload.learned_skill_names}
+            available = [a for a in available if skill_key(a["skill"]) in wanted]
+        learned = [LearnedSkill(skill=a["skill"], project=a["project"]) for a in available]
+
     agent_input = ResumeRewriteInput(
         resume_text=payload.resume_text,
         matching_output=payload.matching_output,
         gaps=payload.gaps,
+        learned_skills=learned,
         ats_issues=payload.ats_issues,
         ats_suggestions=payload.ats_suggestions,
     )
@@ -74,6 +105,8 @@ def rewrite_resume(payload: RewriteRequest, current_user: dict = Depends(get_cur
         raise HTTPException(status_code=502, detail=f"Resume rewrite failed: {result.error}")
 
     data = result.data
+    analysis_id = payload.matching_output.analysis_id if payload.matching_output is not None else None
+    scores = score_rewrite(user_id, payload.resume_text, data.rewritten_text, analysis_id)
     version_no = resume_versions_collection.count_documents({"user_id": user_id}) + 1
     created_at = datetime.now(timezone.utc)
 
@@ -85,6 +118,8 @@ def rewrite_resume(payload: RewriteRequest, current_user: dict = Depends(get_cur
         "rewritten_text": data.rewritten_text,
         "diff_summary": data.diff_summary,
         "warnings": data.warnings,
+        "learned_skills": [l.skill for l in learned],
+        "scores": scores,
         "source": "ats_fix" if payload.matching_output is None else "rewrite",
         "created_at": created_at,
     }
@@ -97,6 +132,7 @@ def rewrite_resume(payload: RewriteRequest, current_user: dict = Depends(get_cur
         version_id=str(inserted.inserted_id),
         version_no=version_no,
         created_at=created_at.isoformat(),
+        scores=scores,
     )
 
 
@@ -120,6 +156,8 @@ def list_versions(current_user: dict = Depends(get_current_user)):
                 "summary": changes[0] if changes else "",
                 "change_count": len(changes),
                 "source": doc.get("source", "rewrite"),
+                "learned_skill_count": len(doc.get("learned_skills", [])),
+                "scores": doc.get("scores"),
             }
         )
     return versions
@@ -142,4 +180,6 @@ def get_version(version_id: str, current_user: dict = Depends(get_current_user))
         "rewritten_text": doc["rewritten_text"],
         "diff_summary": doc.get("diff_summary", []),
         "warnings": doc.get("warnings", []),
+        "learned_skills": doc.get("learned_skills", []),
+        "scores": doc.get("scores"),
     }

@@ -100,23 +100,9 @@ def test_pipeline_resume_and_jd_chains_outputs():
     assert report.failed_at is None
 
 
-def test_loop_stop_conditions():
-    sup = SupervisorAgent()
-
-    keep_going, reason = sup.should_continue_loop(remaining_gaps=[], iteration=1)
-    assert keep_going is False and reason == "no remaining gaps"
-
-    keep_going, reason = sup.should_continue_loop(remaining_gaps=["GraphQL"], iteration=1)
-    assert keep_going is True and reason is None
-
-    keep_going, reason = sup.should_continue_loop(remaining_gaps=["GraphQL"], iteration=5)
-    assert keep_going is False and "safety cap" in reason
-
-
 if __name__ == "__main__":
     test_resume_only_route()
     test_resume_and_jd_route()
     test_pipeline_resume_only()
     test_pipeline_resume_and_jd_chains_outputs()
-    test_loop_stop_conditions()
     print("All Phase 3 routing/orchestration smoke tests passed.")

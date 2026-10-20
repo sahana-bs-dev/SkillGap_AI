@@ -18,12 +18,19 @@ function getToken() {
 // Job rewrite:  runResumeRewrite(resumeText, matchingOutput, gaps)
 // ATS fix:      runResumeRewrite(resumeText, null, null, atsReport)
 //               (atsReport is the { score, issues, suggestions } the ATS report returned)
-export async function runResumeRewrite(resumeText, matchingOutput, gaps, atsReport) {
+// Learned skills: runResumeRewrite(resumeText, matchingOutput, gaps, null, { planId, skills })
+//               planId = the saved skill plan; skills = the names of the learned skills to add.
+//               The server reads the plan itself, so these names can only narrow the list down.
+export async function runResumeRewrite(resumeText, matchingOutput, gaps, atsReport, learned) {
   const body = { resume_text: resumeText };
 
   if (matchingOutput) {
     body.matching_output = matchingOutput;
     body.gaps = gaps || [];
+    if (learned?.planId) {
+      body.plan_id = learned.planId;
+      body.learned_skill_names = learned.skills || [];
+    }
   } else if (atsReport) {
     body.ats_issues = atsReport.issues || [];
     body.ats_suggestions = atsReport.suggestions || [];

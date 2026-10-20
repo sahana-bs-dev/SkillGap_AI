@@ -10,7 +10,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Generic, Optional, TypeVar
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field  # type: ignore
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -87,6 +87,9 @@ class MatchingOutput(BaseModel):
     matched_skills: list[MatchedSkill] = []
     missing_skills: list[str] = []
     relevant_experience: list[str] = []
+    # Set by /analyze/match after the analysis is saved; the Skill gap page uses it
+    # to save its plan against this analysis. The model never produces it.
+    analysis_id: Optional[str] = None
 
 
 # ---------- Skill Gap Agent ----------
@@ -125,7 +128,9 @@ class LearningPlanItem(BaseModel):
 class LearningOutput(BaseModel):
     plan: list[LearningPlanItem] = []
 
-
+class LearnedSkill(BaseModel):
+       skill: str
+       project: Optional[str] = None
 # ---------- Resume Rewrite Agent ----------
 
 class ResumeRewriteInput(BaseModel):
@@ -137,6 +142,7 @@ class ResumeRewriteInput(BaseModel):
     gaps: list[SkillGapItem] = []
     ats_issues: list[ATSIssue] = []
     ats_suggestions: list[str] = []
+    learned_skills: list[LearnedSkill] = []
 
 
 class ResumeRewriteOutput(BaseModel):
@@ -150,17 +156,3 @@ class ResumeRewriteOutput(BaseModel):
 class PipelinePlan(BaseModel):
     route: RouteType
     steps: list[AgentName]
-
-
-# ---------- Improvement loop tracking ----------
-
-class LoopIteration(BaseModel):
-    iteration: int
-    score: int
-    remaining_gaps: list[str] = []
-
-
-class LoopState(BaseModel):
-    iterations: list[LoopIteration] = []
-    finished: bool = False
-    stop_reason: Optional[str] = None

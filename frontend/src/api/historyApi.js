@@ -1,8 +1,6 @@
 // History endpoints (all need login):
 //   GET /api/history/analyses -> [{ id, created_at, flow, jd_title, jd_fingerprint,
 //                                   ats_score, match_score, matched_skills[], missing_skills[] }]
-//   GET /api/history/loops    -> [{ id, created_at, jd_title, version_id, version_no, best_iteration,
-//                                   stop_reason, iterations[{ iteration, score, accepted, remaining_gaps[] }] }]
 // Resume versions already exist: /api/resume/versions (see rewriteApi.js).
 //
 // Any failure (404, 401, 500, server offline) is shown as a real error.
@@ -33,8 +31,4 @@ async function fetchList(path, label) {
 
 export function listAnalyses() {
   return fetchList("/api/history/analyses", "Could not load your analysis history");
-}
-
-export function listLoops() {
-  return fetchList("/api/history/loops", "Could not load your improvement loops");
 }
