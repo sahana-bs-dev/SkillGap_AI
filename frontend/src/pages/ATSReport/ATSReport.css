@@ -1,8 +1,275 @@
 /* ATS Report page — layout is almost entirely covered by the shared
-   classes in src/styles/global.css (.panel, .score-block, .row-list,
-   .agent-strip, .tag, .callout). This file is for anything specific
-   to this page only. */
+   classes in src/styles/global.css (.panel, .row-list, .agent-strip, ...).
+   This file is for anything specific to this page only. */
 
 .route {
   max-width: var(--max);
+}
+
+/* =========================================================
+   ATS REPORT redesign (every class starts with .ats- so nothing
+   here can leak into other pages). Same black & white look as the
+   Match report, colour only for status.
+   ========================================================= */
+
+.ats-page {
+  --ats-black: #0b0b0e;
+  --ats-white: #ffffff;
+  --ats-g50: #f6f6f7;
+  --ats-g200: #e4e4e7;
+  --ats-g500: #71717a;
+  --ats-high: #dc2626;
+  --ats-high-bg: #fdeceb;
+  --ats-med: #d97706;
+  --ats-med-bg: #fef3c7;
+  --ats-med-fg: #b45309;
+  --ats-low: #16a34a;
+  --ats-low-bg: #e8f7ee;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ---------- hero (score card) ---------- */
+.ats-hero {
+  display: flex;
+  align-items: center;
+  gap: 2.4rem;
+  padding: 1.9rem 2.2rem;
+  border-radius: 16px;
+  background: var(--ats-white);
+  border: 1px solid var(--ats-g200);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.ats-dial {
+  --ring: var(--ats-black);
+  position: relative;
+  width: 150px;
+  height: 150px;
+  flex: none;
+}
+.ats-dial.strong   { --ring: var(--ats-low); }
+.ats-dial.moderate { --ring: var(--ats-med); }
+.ats-dial.weak     { --ring: var(--ats-high); }
+.ats-dial svg { width: 100%; height: 100%; display: block; }
+.ats-dial-track { fill: none; stroke: var(--ats-g200); stroke-width: 9; }
+.ats-dial-fill { fill: none; stroke: var(--ring); stroke-width: 9; stroke-linecap: round; }
+.ats-dial-num {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--serif);
+  font-size: 2.9rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ats-black);
+}
+.ats-dial-num span {
+  font-family: var(--sans);
+  font-size: .9rem;
+  font-weight: 500;
+  color: var(--ats-g500);
+  margin: .9rem 0 0 .15rem;
+}
+
+.ats-hero-body { flex: 1; min-width: 0; }
+.ats-eyebrow {
+  display: block;
+  font-family: var(--mono);
+  font-size: .72rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ats-g500);
+  margin-bottom: .6rem;
+}
+.ats-hero-row { margin-bottom: .6rem; }
+.ats-tier {
+  display: inline-block;
+  font-size: .78rem;
+  font-weight: 600;
+  padding: .3em .85em;
+  border-radius: 999px;
+}
+.ats-tier.strong   { background: var(--ats-low-bg);  color: var(--ats-low); }
+.ats-tier.moderate { background: var(--ats-med-bg);  color: var(--ats-med-fg); }
+.ats-tier.weak     { background: var(--ats-high-bg); color: var(--ats-high); }
+.ats-hero-caption {
+  margin: 0 0 1.3rem;
+  max-width: 52ch;
+  color: #3f3f46;
+  font-size: 1rem;
+}
+
+.ats-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--ats-g200);
+  border-radius: 12px;
+  background: var(--ats-g50);
+}
+.ats-stat { display: flex; flex-direction: column; padding: .8rem 1.1rem; }
+.ats-stat + .ats-stat { border-left: 1px solid var(--ats-g200); }
+.ats-stat strong {
+  font-family: var(--serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--ats-black);
+}
+.ats-stat strong.high { color: var(--ats-high); }
+.ats-stat span { font-size: .76rem; color: var(--ats-g500); }
+
+/* ---------- cards ---------- */
+.ats-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+.ats-card {
+  background: var(--ats-white);
+  border: 1px solid var(--ats-g200);
+  border-radius: 16px;
+  padding: 1.4rem 1.5rem 1.1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.ats-card-head {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  padding-bottom: 1rem;
+  margin-bottom: .2rem;
+  border-bottom: 1px solid var(--ats-g200);
+}
+.ats-card-head h3 { margin: 0; font-size: 1.15rem; flex: 1; }
+.ats-badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.ats-badge.bad { background: var(--ats-high-bg); color: var(--ats-high); }
+.ats-badge.ok  { background: var(--ats-low-bg);  color: var(--ats-low); }
+.ats-badge.dark { background: var(--ats-black); color: var(--ats-white); }
+.ats-count {
+  font-family: var(--mono);
+  font-size: .76rem;
+  padding: .25em .7em;
+  border-radius: 999px;
+  background: var(--ats-g50);
+  border: 1px solid var(--ats-g200);
+  color: var(--ats-g500);
+}
+
+/* ---------- rows ---------- */
+.ats-list { display: flex; flex-direction: column; }
+.ats-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .85rem .5rem;
+  margin: 0 -.5rem;
+  border-bottom: 1px solid var(--ats-g200);
+  border-radius: 8px;
+  transition: background .12s ease;
+}
+.ats-item:last-child { border-bottom: none; }
+.ats-item:hover { background: var(--ats-g50); }
+.ats-item-main { min-width: 0; }
+.ats-item-title { font-weight: 600; color: var(--ats-black); text-transform: capitalize; }
+.ats-item-desc { margin: .15rem 0 0; font-size: .88rem; color: #3f3f46; max-width: none; }
+
+.ats-pill {
+  flex: none;
+  font-family: var(--mono);
+  font-size: .7rem;
+  font-weight: 500;
+  padding: .28em .75em;
+  border-radius: 999px;
+  text-transform: capitalize;
+}
+.ats-pill.high   { background: var(--ats-high-bg); color: var(--ats-high); }
+.ats-pill.medium { background: var(--ats-med-bg);  color: var(--ats-med-fg); }
+.ats-pill.low    { background: var(--ats-low-bg);  color: var(--ats-low); }
+
+.ats-idx {
+  flex: none;
+  font-family: var(--mono);
+  font-size: .75rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ats-black);
+  color: var(--ats-white);
+}
+.ats-item.ats-suggestion { justify-content: flex-start; align-items: flex-start; }
+.ats-item.ats-suggestion .ats-item-desc { margin: .2rem 0 0; font-size: .92rem; }
+
+.ats-empty {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin: 1rem 0;
+  color: var(--ats-g500);
+}
+.ats-empty svg { color: var(--ats-low); flex: none; }
+
+/* ---------- call to action ---------- */
+.ats-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.4rem 1.8rem;
+  border-radius: 16px;
+  background: var(--ats-g50);
+  border: 1px solid var(--ats-g200);
+}
+.ats-cta h3 { margin: 0 0 .2rem; color: var(--ats-black); font-size: 1.15rem; }
+.ats-cta p { margin: 0; color: var(--ats-g500); font-size: .9rem; }
+.ats-cta a:not(.ats-cta-btn) { color: var(--ats-black); text-underline-offset: 3px; }
+.ats-cta-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: .5em;
+  background: var(--ats-black);
+  color: var(--ats-white);
+  font-weight: 600;
+  font-size: .92rem;
+  text-decoration: none;
+  padding: .75em 1.3em;
+  border-radius: 10px;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.ats-cta-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18); }
+.ats-cta-btn.ghost {
+  background: var(--ats-white);
+  color: var(--ats-black);
+  border: 1px solid var(--ats-g200);
+}
+.ats-cta-btn.ghost:hover { border-color: var(--ats-black); box-shadow: none; }
+
+/* ---------- phones / small tablets ---------- */
+@media (max-width: 900px) {
+  .ats-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 768px) {
+  .ats-hero { flex-direction: column; align-items: flex-start; gap: 1.4rem; padding: 1.5rem 1.2rem; }
+  .ats-dial { width: 130px; height: 130px; }
+  .ats-hero-body { width: 100%; }
+  .ats-dial-num { font-size: 2.4rem; }
+  .ats-card { padding: 1.1rem 1.1rem .8rem; }
+  .ats-cta { flex-direction: column; align-items: flex-start; }
 }
